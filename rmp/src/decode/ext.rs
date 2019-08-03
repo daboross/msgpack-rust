@@ -1,25 +1,28 @@
 use std::io::Read;
 
+use super::{
+    read_data_i8, read_data_u16, read_data_u32, read_data_u8, read_marker, ValueReadError,
+};
 use Marker;
-use super::{read_marker, read_data_i8, read_data_u8, read_data_u16, read_data_u32, ValueReadError};
 
-/// Attempts to read exactly 3 bytes from the given reader and interpret them as a fixext1 type
-/// with data attached.
+/// Attempts to read exactly 3 bytes from the given reader and interpret them as
+/// a fixext1 type with data attached.
 ///
-/// According to the MessagePack specification, a fixext1 stores an integer and a byte array whose
-/// length is 1 byte. Its marker byte is `0xd4`.
+/// According to the MessagePack specification, a fixext1 stores an integer and
+/// a byte array whose length is 1 byte. Its marker byte is `0xd4`.
 ///
-/// Note, that this function copies a byte array from the reader to the output `u8` variable.
+/// Note, that this function copies a byte array from the reader to the output
+/// `u8` variable.
 ///
 /// # Errors
 ///
-/// This function will return `ValueReadError` on any I/O error while reading either the marker or
-/// the data.
+/// This function will return `ValueReadError` on any I/O error while reading
+/// either the marker or the data.
 ///
 /// # Note
 ///
-/// This function will silently retry on every EINTR received from the underlying `Read` until
-/// successful read.
+/// This function will silently retry on every EINTR received from the
+/// underlying `Read` until successful read.
 pub fn read_fixext1<R: Read>(rd: &mut R) -> Result<(i8, u8), ValueReadError> {
     match try!(read_marker(rd)) {
         Marker::FixExt1 => {
@@ -31,19 +34,19 @@ pub fn read_fixext1<R: Read>(rd: &mut R) -> Result<(i8, u8), ValueReadError> {
     }
 }
 
-/// Attempts to read exactly 4 bytes from the given reader and interpret them as a fixext2 type
-/// with data attached.
+/// Attempts to read exactly 4 bytes from the given reader and interpret them as
+/// a fixext2 type with data attached.
 ///
-/// According to the MessagePack specification, a fixext2 stores an integer and a byte array whose
-/// length is 2 bytes. Its marker byte is `0xd5`.
+/// According to the MessagePack specification, a fixext2 stores an integer and
+/// a byte array whose length is 2 bytes. Its marker byte is `0xd5`.
 ///
-/// Note, that this function copies a byte array from the reader to the output buffer, which is
-/// unlikely if you want zero-copy functionality.
+/// Note, that this function copies a byte array from the reader to the output
+/// buffer, which is unlikely if you want zero-copy functionality.
 ///
 /// # Errors
 ///
-/// This function will return `ValueReadError` on any I/O error while reading either the marker or
-/// the data.
+/// This function will return `ValueReadError` on any I/O error while reading
+/// either the marker or the data.
 pub fn read_fixext2<R: Read>(rd: &mut R) -> Result<(i8, [u8; 2]), ValueReadError> {
     match try!(read_marker(rd)) {
         Marker::FixExt2 => {
@@ -54,19 +57,19 @@ pub fn read_fixext2<R: Read>(rd: &mut R) -> Result<(i8, [u8; 2]), ValueReadError
     }
 }
 
-/// Attempts to read exactly 6 bytes from the given reader and interpret them as a fixext4 type
-/// with data attached.
+/// Attempts to read exactly 6 bytes from the given reader and interpret them as
+/// a fixext4 type with data attached.
 ///
-/// According to the MessagePack specification, a fixext4 stores an integer and a byte array whose
-/// length is 4 bytes. Its marker byte is `0xd6`.
+/// According to the MessagePack specification, a fixext4 stores an integer and
+/// a byte array whose length is 4 bytes. Its marker byte is `0xd6`.
 ///
-/// Note, that this function copies a byte array from the reader to the output buffer, which is
-/// unlikely if you want zero-copy functionality.
+/// Note, that this function copies a byte array from the reader to the output
+/// buffer, which is unlikely if you want zero-copy functionality.
 ///
 /// # Errors
 ///
-/// This function will return `ValueReadError` on any I/O error while reading either the marker or
-/// the data.
+/// This function will return `ValueReadError` on any I/O error while reading
+/// either the marker or the data.
 pub fn read_fixext4<R: Read>(rd: &mut R) -> Result<(i8, [u8; 4]), ValueReadError> {
     match try!(read_marker(rd)) {
         Marker::FixExt4 => {
@@ -77,19 +80,19 @@ pub fn read_fixext4<R: Read>(rd: &mut R) -> Result<(i8, [u8; 4]), ValueReadError
     }
 }
 
-/// Attempts to read exactly 10 bytes from the given reader and interpret them as a fixext8 type
-/// with data attached.
+/// Attempts to read exactly 10 bytes from the given reader and interpret them
+/// as a fixext8 type with data attached.
 ///
-/// According to the MessagePack specification, a fixext8 stores an integer and a byte array whose
-/// length is 8 bytes. Its marker byte is `0xd7`.
+/// According to the MessagePack specification, a fixext8 stores an integer and
+/// a byte array whose length is 8 bytes. Its marker byte is `0xd7`.
 ///
-/// Note, that this function copies a byte array from the reader to the output buffer, which is
-/// unlikely if you want zero-copy functionality.
+/// Note, that this function copies a byte array from the reader to the output
+/// buffer, which is unlikely if you want zero-copy functionality.
 ///
 /// # Errors
 ///
-/// This function will return `ValueReadError` on any I/O error while reading either the marker or
-/// the data.
+/// This function will return `ValueReadError` on any I/O error while reading
+/// either the marker or the data.
 pub fn read_fixext8<R: Read>(rd: &mut R) -> Result<(i8, [u8; 8]), ValueReadError> {
     match try!(read_marker(rd)) {
         Marker::FixExt8 => {
@@ -100,19 +103,19 @@ pub fn read_fixext8<R: Read>(rd: &mut R) -> Result<(i8, [u8; 8]), ValueReadError
     }
 }
 
-/// Attempts to read exactly 18 bytes from the given reader and interpret them as a fixext16 type
-/// with data attached.
+/// Attempts to read exactly 18 bytes from the given reader and interpret them
+/// as a fixext16 type with data attached.
 ///
-/// According to the MessagePack specification, a fixext16 stores an integer and a byte array whose
-/// length is 16 bytes. Its marker byte is `0xd8`.
+/// According to the MessagePack specification, a fixext16 stores an integer and
+/// a byte array whose length is 16 bytes. Its marker byte is `0xd8`.
 ///
-/// Note, that this function copies a byte array from the reader to the output buffer, which is
-/// unlikely if you want zero-copy functionality.
+/// Note, that this function copies a byte array from the reader to the output
+/// buffer, which is unlikely if you want zero-copy functionality.
 ///
 /// # Errors
 ///
-/// This function will return `ValueReadError` on any I/O error while reading either the marker or
-/// the data.
+/// This function will return `ValueReadError` on any I/O error while reading
+/// either the marker or the data.
 pub fn read_fixext16<R: Read>(rd: &mut R) -> Result<(i8, [u8; 16]), ValueReadError> {
     match try!(read_marker(rd)) {
         Marker::FixExt16 => {
@@ -133,15 +136,16 @@ fn read_fixext_data<R: Read>(rd: &mut R, buf: &mut [u8]) -> Result<i8, ValueRead
 
 /// Extension type meta information.
 ///
-/// Extension represents a tuple of type information and a byte array where type information is an
-/// integer whose meaning is defined by applications.
+/// Extension represents a tuple of type information and a byte array where type
+/// information is an integer whose meaning is defined by applications.
 ///
-/// Applications can assign 0 to 127 to store application-specific type information.
+/// Applications can assign 0 to 127 to store application-specific type
+/// information.
 ///
 /// # Note
 ///
-/// MessagePack reserves -1 to -128 for future extension to add predefined types which will be
-/// described in separated documents.
+/// MessagePack reserves -1 to -128 for future extension to add predefined types
+/// which will be described in separated documents.
 #[derive(Debug, PartialEq)]
 pub struct ExtMeta {
     /// Type information.

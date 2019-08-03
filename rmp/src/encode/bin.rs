@@ -1,19 +1,19 @@
 use std::io::Write;
 
-use Marker;
+use super::{write_data_u16, write_data_u32, write_data_u8};
 use encode::{write_marker, ValueWriteError};
-use super::{write_data_u8, write_data_u16, write_data_u32};
+use Marker;
 
-/// Encodes and attempts to write the most efficient binary array length implementation to the given
-/// write, returning the marker used.
+/// Encodes and attempts to write the most efficient binary array length
+/// implementation to the given write, returning the marker used.
 ///
-/// This function is useful when you want to get full control for writing the data itself, for
-/// example, when using non-blocking socket.
+/// This function is useful when you want to get full control for writing the
+/// data itself, for example, when using non-blocking socket.
 ///
 /// # Errors
 ///
-/// This function will return `ValueWriteError` on any I/O error occurred while writing either the
-/// marker or the data.
+/// This function will return `ValueWriteError` on any I/O error occurred while
+/// writing either the marker or the data.
 pub fn write_bin_len<W: Write>(wr: &mut W, len: u32) -> Result<Marker, ValueWriteError> {
     if len < 256 {
         try!(write_marker(wr, Marker::Bin8));
@@ -30,14 +30,16 @@ pub fn write_bin_len<W: Write>(wr: &mut W, len: u32) -> Result<Marker, ValueWrit
     }
 }
 
-/// Encodes and attempts to write the most efficient binary implementation to the given `Write`.
+/// Encodes and attempts to write the most efficient binary implementation to
+/// the given `Write`.
 ///
 /// # Errors
 ///
-/// This function will return `ValueWriteError` on any I/O error occurred while writing either the
-/// marker or the data.
+/// This function will return `ValueWriteError` on any I/O error occurred while
+/// writing either the marker or the data.
 // TODO: Docs, range check, example, visibility.
 pub fn write_bin<W: Write>(wr: &mut W, data: &[u8]) -> Result<(), ValueWriteError> {
     try!(write_bin_len(wr, data.len() as u32));
-    wr.write_all(data).map_err(ValueWriteError::InvalidDataWrite)
+    wr.write_all(data)
+        .map_err(ValueWriteError::InvalidDataWrite)
 }

@@ -1,23 +1,27 @@
 //! Provides various functions and structs for MessagePack encoding.
 
-mod sint;
-mod uint;
-mod dec;
-mod str;
 mod bin;
-mod vec;
-mod map;
+mod dec;
 mod ext;
+mod map;
+mod sint;
+mod str;
+mod uint;
+mod vec;
 
-pub use self::sint::{write_nfix, write_i8, write_i16, write_i32, write_i64, write_sint};
-pub use self::uint::{write_pfix, write_u8, write_u16, write_u32, write_u64, write_uint};
-pub use self::dec::{write_f32, write_f64};
-pub use self::str::{write_str_len, write_str};
-pub use self::bin::{write_bin_len, write_bin};
+pub use self::{
+    bin::{write_bin, write_bin_len},
+    dec::{write_f32, write_f64},
+    sint::{write_i16, write_i32, write_i64, write_i8, write_nfix, write_sint},
+    str::{write_str, write_str_len},
+    uint::{write_pfix, write_u16, write_u32, write_u64, write_u8, write_uint},
+};
 
-use std::error;
-use std::fmt::{self, Display, Formatter};
-use std::io::Write;
+use std::{
+    error,
+    fmt::{self, Display, Formatter},
+    io::Write,
+};
 
 use byteorder::{self, WriteBytesExt};
 
@@ -38,7 +42,7 @@ impl From<Error> for MarkerWriteError {
 impl From<MarkerWriteError> for Error {
     fn from(err: MarkerWriteError) -> Error {
         match err {
-            MarkerWriteError(err) => err
+            MarkerWriteError(err) => err,
         }
     }
 }
@@ -65,11 +69,13 @@ impl From<DataWriteError> for Error {
 
 /// Encodes and attempts to write a nil value into the given write.
 ///
-/// According to the MessagePack specification, a nil value is represented as a single `0xc0` byte.
+/// According to the MessagePack specification, a nil value is represented as a
+/// single `0xc0` byte.
 ///
 /// # Errors
 ///
-/// This function will return `Error` on any I/O error occurred while writing the nil marker.
+/// This function will return `Error` on any I/O error occurred while writing
+/// the nil marker.
 ///
 /// # Examples
 ///
@@ -86,19 +92,15 @@ pub fn write_nil<W: Write>(wr: &mut W) -> Result<(), Error> {
 
 /// Encodes and attempts to write a bool value into the given write.
 ///
-/// According to the MessagePack specification, an encoded boolean value is represented as a single
-/// byte.
+/// According to the MessagePack specification, an encoded boolean value is
+/// represented as a single byte.
 ///
 /// # Errors
 ///
-/// Each call to this function may generate an I/O error indicating that the operation could not be
-/// completed.
+/// Each call to this function may generate an I/O error indicating that the
+/// operation could not be completed.
 pub fn write_bool<W: Write>(wr: &mut W, val: bool) -> Result<(), Error> {
-    let marker = if val {
-        Marker::True
-    } else {
-        Marker::False
-    };
+    let marker = if val { Marker::True } else { Marker::False };
 
     write_marker(wr, marker).map_err(From::from)
 }
@@ -108,15 +110,18 @@ fn write_data_u8<W: Write>(wr: &mut W, val: u8) -> Result<(), DataWriteError> {
 }
 
 fn write_data_u16<W: Write>(wr: &mut W, val: u16) -> Result<(), DataWriteError> {
-    wr.write_u16::<byteorder::BigEndian>(val).map_err(DataWriteError)
+    wr.write_u16::<byteorder::BigEndian>(val)
+        .map_err(DataWriteError)
 }
 
 fn write_data_u32<W: Write>(wr: &mut W, val: u32) -> Result<(), DataWriteError> {
-    wr.write_u32::<byteorder::BigEndian>(val).map_err(DataWriteError)
+    wr.write_u32::<byteorder::BigEndian>(val)
+        .map_err(DataWriteError)
 }
 
 fn write_data_u64<W: Write>(wr: &mut W, val: u64) -> Result<(), DataWriteError> {
-    wr.write_u64::<byteorder::BigEndian>(val).map_err(DataWriteError)
+    wr.write_u64::<byteorder::BigEndian>(val)
+        .map_err(DataWriteError)
 }
 
 fn write_data_i8<W: Write>(wr: &mut W, val: i8) -> Result<(), DataWriteError> {
@@ -124,26 +129,32 @@ fn write_data_i8<W: Write>(wr: &mut W, val: i8) -> Result<(), DataWriteError> {
 }
 
 fn write_data_i16<W: Write>(wr: &mut W, val: i16) -> Result<(), DataWriteError> {
-    wr.write_i16::<byteorder::BigEndian>(val).map_err(DataWriteError)
+    wr.write_i16::<byteorder::BigEndian>(val)
+        .map_err(DataWriteError)
 }
 
 fn write_data_i32<W: Write>(wr: &mut W, val: i32) -> Result<(), DataWriteError> {
-    wr.write_i32::<byteorder::BigEndian>(val).map_err(DataWriteError)
+    wr.write_i32::<byteorder::BigEndian>(val)
+        .map_err(DataWriteError)
 }
 
 fn write_data_i64<W: Write>(wr: &mut W, val: i64) -> Result<(), DataWriteError> {
-    wr.write_i64::<byteorder::BigEndian>(val).map_err(DataWriteError)
+    wr.write_i64::<byteorder::BigEndian>(val)
+        .map_err(DataWriteError)
 }
 
 fn write_data_f32<W: Write>(wr: &mut W, val: f32) -> Result<(), DataWriteError> {
-    wr.write_f32::<byteorder::BigEndian>(val).map_err(DataWriteError)
+    wr.write_f32::<byteorder::BigEndian>(val)
+        .map_err(DataWriteError)
 }
 
 fn write_data_f64<W: Write>(wr: &mut W, val: f64) -> Result<(), DataWriteError> {
-    wr.write_f64::<byteorder::BigEndian>(val).map_err(DataWriteError)
+    wr.write_f64::<byteorder::BigEndian>(val)
+        .map_err(DataWriteError)
 }
 
-/// An error that can occur when attempting to write multi-byte MessagePack value.
+/// An error that can occur when attempting to write multi-byte MessagePack
+/// value.
 #[derive(Debug)]
 pub enum ValueWriteError {
     /// I/O error while writing marker.
@@ -171,8 +182,9 @@ impl From<DataWriteError> for ValueWriteError {
 impl From<ValueWriteError> for Error {
     fn from(err: ValueWriteError) -> Error {
         match err {
-            ValueWriteError::InvalidMarkerWrite(err) |
-            ValueWriteError::InvalidDataWrite(err) => err,
+            ValueWriteError::InvalidMarkerWrite(err) | ValueWriteError::InvalidDataWrite(err) => {
+                err
+            }
         }
     }
 }
@@ -184,8 +196,8 @@ impl error::Error for ValueWriteError {
 
     fn cause(&self) -> Option<&error::Error> {
         match *self {
-            ValueWriteError::InvalidMarkerWrite(ref err) |
-            ValueWriteError::InvalidDataWrite(ref err) => Some(err),
+            ValueWriteError::InvalidMarkerWrite(ref err)
+            | ValueWriteError::InvalidDataWrite(ref err) => Some(err),
         }
     }
 }
@@ -196,13 +208,13 @@ impl Display for ValueWriteError {
     }
 }
 
-/// Encodes and attempts to write the most efficient array length implementation to the given write,
-/// returning the marker used.
+/// Encodes and attempts to write the most efficient array length implementation
+/// to the given write, returning the marker used.
 ///
 /// # Errors
 ///
-/// This function will return `ValueWriteError` on any I/O error occurred while writing either the
-/// marker or the data.
+/// This function will return `ValueWriteError` on any I/O error occurred while
+/// writing either the marker or the data.
 pub fn write_array_len<W: Write>(wr: &mut W, len: u32) -> Result<Marker, ValueWriteError> {
     let marker = if len < 16 {
         try!(write_marker(wr, Marker::FixArray(len as u8)));
@@ -220,13 +232,13 @@ pub fn write_array_len<W: Write>(wr: &mut W, len: u32) -> Result<Marker, ValueWr
     Ok(marker)
 }
 
-/// Encodes and attempts to write the most efficient map length implementation to the given write,
-/// returning the marker used.
+/// Encodes and attempts to write the most efficient map length implementation
+/// to the given write, returning the marker used.
 ///
 /// # Errors
 ///
-/// This function will return `ValueWriteError` on any I/O error occurred while writing either the
-/// marker or the data.
+/// This function will return `ValueWriteError` on any I/O error occurred while
+/// writing either the marker or the data.
 pub fn write_map_len<W: Write>(wr: &mut W, len: u32) -> Result<Marker, ValueWriteError> {
     let marker = if len < 16 {
         try!(write_marker(wr, Marker::FixMap(len as u8)));
@@ -244,18 +256,18 @@ pub fn write_map_len<W: Write>(wr: &mut W, len: u32) -> Result<Marker, ValueWrit
     Ok(marker)
 }
 
-/// Encodes and attempts to write the most efficient ext metadata implementation to the given
-/// write, returning the marker used.
+/// Encodes and attempts to write the most efficient ext metadata implementation
+/// to the given write, returning the marker used.
 ///
 /// # Errors
 ///
-/// This function will return `ValueWriteError` on any I/O error occurred while writing either the
-/// marker or the data.
+/// This function will return `ValueWriteError` on any I/O error occurred while
+/// writing either the marker or the data.
 ///
 /// # Panics
 ///
-/// Panics if `ty` is negative, because it is reserved for future MessagePack extension including
-/// 2-byte type information.
+/// Panics if `ty` is negative, because it is reserved for future MessagePack
+/// extension including 2-byte type information.
 pub fn write_ext_meta<W: Write>(wr: &mut W, len: u32, ty: i8) -> Result<Marker, ValueWriteError> {
     assert!(ty >= 0);
 

@@ -1,25 +1,28 @@
 use std::io::Write;
 
+use super::{write_data_i16, write_data_i32, write_data_i64, write_data_i8, write_marker};
+use encode::{write_pfix, write_u16, write_u32, write_u64, write_u8, Error, ValueWriteError};
 use Marker;
-use encode::{write_pfix, write_u8, write_u16, write_u32, write_u64, Error, ValueWriteError};
-use super::{write_data_i8, write_data_i16, write_data_i32, write_data_i64, write_marker};
 
-/// Encodes and attempts to write a negative small integer value as a negative fixnum into the
-/// given write.
+/// Encodes and attempts to write a negative small integer value as a negative
+/// fixnum into the given write.
 ///
-/// According to the MessagePack specification, a negative fixed integer value is represented using
-/// a single byte in `[0xe0; 0xff]` range inclusively, prepended with a special marker mask.
+/// According to the MessagePack specification, a negative fixed integer value
+/// is represented using a single byte in `[0xe0; 0xff]` range inclusively,
+/// prepended with a special marker mask.
 ///
-/// The function is **strict** with the input arguments - it is the user's responsibility to check
-/// if the value fits in the described range, otherwise it will panic.
+/// The function is **strict** with the input arguments - it is the user's
+/// responsibility to check if the value fits in the described range, otherwise
+/// it will panic.
 ///
-/// If you are not sure if the value fits in the given range use `write_sint` instead, which
-/// automatically selects the most compact integer representation.
+/// If you are not sure if the value fits in the given range use `write_sint`
+/// instead, which automatically selects the most compact integer
+/// representation.
 ///
 /// # Errors
 ///
-/// This function will return `FixedValueWriteError` on any I/O error occurred while writing the
-/// positive integer marker.
+/// This function will return `FixedValueWriteError` on any I/O error occurred
+/// while writing the positive integer marker.
 ///
 /// # Panics
 ///
@@ -30,21 +33,24 @@ pub fn write_nfix<W: Write>(wr: &mut W, val: i8) -> Result<(), Error> {
     Ok(())
 }
 
-/// Encodes and attempts to write an `i8` value as a 2-byte sequence into the given write.
+/// Encodes and attempts to write an `i8` value as a 2-byte sequence into the
+/// given write.
 ///
-/// The first byte becomes the marker and the second one will represent the data itself.
+/// The first byte becomes the marker and the second one will represent the data
+/// itself.
 ///
-/// Note, that this function will encode the given value in 2-byte sequence no matter what, even if
-/// the value can be represented using single byte as a fixnum. Also note, that the first byte will
-/// always be the i8 marker (`0xd0`).
+/// Note, that this function will encode the given value in 2-byte sequence no
+/// matter what, even if the value can be represented using single byte as a
+/// fixnum. Also note, that the first byte will always be the i8 marker
+/// (`0xd0`).
 ///
-/// If you need to fit the given buffer efficiently use `write_sint` instead, which automatically
-/// selects the appropriate integer representation.
+/// If you need to fit the given buffer efficiently use `write_sint` instead,
+/// which automatically selects the appropriate integer representation.
 ///
 /// # Errors
 ///
-/// This function will return `ValueWriteError` on any I/O error occurred while writing either the
-/// marker or the data.
+/// This function will return `ValueWriteError` on any I/O error occurred while
+/// writing either the marker or the data.
 ///
 /// # Examples
 ///
@@ -64,102 +70,108 @@ pub fn write_i8<W: Write>(wr: &mut W, val: i8) -> Result<(), ValueWriteError> {
     Ok(())
 }
 
-/// Encodes and attempts to write an `i16` value as a 3-byte sequence into the given write.
+/// Encodes and attempts to write an `i16` value as a 3-byte sequence into the
+/// given write.
 ///
-/// The first byte becomes the marker and the others will represent the data itself.
+/// The first byte becomes the marker and the others will represent the data
+/// itself.
 ///
-/// Note, that this function will encode the given value in 3-byte sequence no matter what, even if
-/// the value can be represented using single byte as a fixnum. Also note, that the first byte will
-/// always be the i16 marker (`0xd1`).
+/// Note, that this function will encode the given value in 3-byte sequence no
+/// matter what, even if the value can be represented using single byte as a
+/// fixnum. Also note, that the first byte will always be the i16 marker
+/// (`0xd1`).
 ///
-/// If you need to fit the given buffer efficiently use `write_sint` instead, which automatically
-/// selects the appropriate integer representation.
+/// If you need to fit the given buffer efficiently use `write_sint` instead,
+/// which automatically selects the appropriate integer representation.
 ///
 /// # Errors
 ///
-/// This function will return `ValueWriteError` on any I/O error occurred while writing either the
-/// marker or the data.
+/// This function will return `ValueWriteError` on any I/O error occurred while
+/// writing either the marker or the data.
 pub fn write_i16<W: Write>(wr: &mut W, val: i16) -> Result<(), ValueWriteError> {
     try!(write_marker(wr, Marker::I16));
     try!(write_data_i16(wr, val));
     Ok(())
 }
 
-/// Encodes and attempts to write an `i32` value as a 5-byte sequence into the given write.
+/// Encodes and attempts to write an `i32` value as a 5-byte sequence into the
+/// given write.
 ///
-/// The first byte becomes the marker and the others will represent the data itself.
+/// The first byte becomes the marker and the others will represent the data
+/// itself.
 ///
-/// Note, that this function will encode the given value in 5-byte sequence no matter what, even if
-/// the value can be represented using single byte as a fixnum. Also note, that the first byte will
-/// always be the i32 marker (`0xd2`).
+/// Note, that this function will encode the given value in 5-byte sequence no
+/// matter what, even if the value can be represented using single byte as a
+/// fixnum. Also note, that the first byte will always be the i32 marker
+/// (`0xd2`).
 ///
-/// If you need to fit the given buffer efficiently use `write_sint` instead, which automatically
-/// selects the appropriate integer representation.
+/// If you need to fit the given buffer efficiently use `write_sint` instead,
+/// which automatically selects the appropriate integer representation.
 ///
 /// # Errors
 ///
-/// This function will return `ValueWriteError` on any I/O error occurred while writing either the
-/// marker or the data.
+/// This function will return `ValueWriteError` on any I/O error occurred while
+/// writing either the marker or the data.
 pub fn write_i32<W: Write>(wr: &mut W, val: i32) -> Result<(), ValueWriteError> {
     try!(write_marker(wr, Marker::I32));
     try!(write_data_i32(wr, val));
     Ok(())
 }
 
-/// Encodes and attempts to write an `i64` value as a 9-byte sequence into the given write.
+/// Encodes and attempts to write an `i64` value as a 9-byte sequence into the
+/// given write.
 ///
-/// The first byte becomes the marker and the others will represent the data itself.
+/// The first byte becomes the marker and the others will represent the data
+/// itself.
 ///
-/// Note, that this function will encode the given value in 9-byte sequence no matter what, even if
-/// the value can be represented using single byte as a fixnum. Also note, that the first byte will
-/// always be the i16 marker (`0xd3`).
+/// Note, that this function will encode the given value in 9-byte sequence no
+/// matter what, even if the value can be represented using single byte as a
+/// fixnum. Also note, that the first byte will always be the i16 marker
+/// (`0xd3`).
 ///
-/// If you need to fit the given buffer efficiently use `write_sint` instead, which automatically
-/// selects the appropriate integer representation.
+/// If you need to fit the given buffer efficiently use `write_sint` instead,
+/// which automatically selects the appropriate integer representation.
 ///
 /// # Errors
 ///
-/// This function will return `ValueWriteError` on any I/O error occurred while writing either the
-/// marker or the data.
+/// This function will return `ValueWriteError` on any I/O error occurred while
+/// writing either the marker or the data.
 pub fn write_i64<W: Write>(wr: &mut W, val: i64) -> Result<(), ValueWriteError> {
     try!(write_marker(wr, Marker::I64));
     try!(write_data_i64(wr, val));
     Ok(())
 }
 
-/// Encodes and attempts to write an `i64` value into the given write using the most efficient
-/// representation, returning the marker used.
+/// Encodes and attempts to write an `i64` value into the given write using the
+/// most efficient representation, returning the marker used.
 ///
-/// This function obeys the MessagePack specification, which requires that the serializer SHOULD use
-/// the format which represents the data in the smallest number of bytes, with the exception of
-/// sized/unsized types.
+/// This function obeys the MessagePack specification, which requires that the
+/// serializer SHOULD use the format which represents the data in the smallest
+/// number of bytes, with the exception of sized/unsized types.
 ///
-/// Note, that the function will **always** use signed integer representation even if the value can
-/// be more efficiently represented using unsigned integer encoding.
+/// Note, that the function will **always** use signed integer representation
+/// even if the value can be more efficiently represented using unsigned integer
+/// encoding.
 ///
-/// The first byte becomes the marker and the others (if present, up to 9) will represent the data
-/// itself.
+/// The first byte becomes the marker and the others (if present, up to 9) will
+/// represent the data itself.
 ///
 /// # Errors
 ///
-/// This function will return `ValueWriteError` on any I/O error occurred while writing either the
-/// marker or the data.
+/// This function will return `ValueWriteError` on any I/O error occurred while
+/// writing either the marker or the data.
 pub fn write_sint<W: Write>(wr: &mut W, val: i64) -> Result<Marker, ValueWriteError> {
     match val {
-        val if -32 <= val && val < 0 => {
-            write_nfix(wr, val as i8)
-                .and(Ok(Marker::FixNeg(val as i8)))
-                .map_err(ValueWriteError::InvalidMarkerWrite)
-        }
+        val if -32 <= val && val < 0 => write_nfix(wr, val as i8)
+            .and(Ok(Marker::FixNeg(val as i8)))
+            .map_err(ValueWriteError::InvalidMarkerWrite),
         val if -128 <= val && val < -32 => write_i8(wr, val as i8).and(Ok(Marker::I8)),
         val if -32768 <= val && val < -128 => write_i16(wr, val as i16).and(Ok(Marker::I16)),
         val if -2147483648 <= val && val < -32768 => write_i32(wr, val as i32).and(Ok(Marker::I32)),
         val if val < -2147483648 => write_i64(wr, val).and(Ok(Marker::I64)),
-        val if 0 <= val && val < 128 => {
-            write_pfix(wr, val as u8)
-                .and(Ok(Marker::FixPos(val as u8)))
-                .map_err(ValueWriteError::InvalidMarkerWrite)
-        }
+        val if 0 <= val && val < 128 => write_pfix(wr, val as u8)
+            .and(Ok(Marker::FixPos(val as u8)))
+            .map_err(ValueWriteError::InvalidMarkerWrite),
         val if val < 256 => write_u8(wr, val as u8).and(Ok(Marker::U8)),
         val if val < 65536 => write_u16(wr, val as u16).and(Ok(Marker::U16)),
         val if val < 4294967296 => write_u32(wr, val as u32).and(Ok(Marker::U32)),
