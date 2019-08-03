@@ -2,8 +2,10 @@ use std::io::Write;
 
 use rustc_serialize;
 
-use rmp::encode::{write_array_len, write_bool, write_f32, write_f64, write_map_len, write_nil,
-                  write_sint, write_uint, write_str};
+use rmp::encode::{
+    write_array_len, write_bool, write_f32, write_f64, write_map_len, write_nil, write_sint,
+    write_str, write_uint,
+};
 
 use rmp::encode::ValueWriteError;
 
@@ -13,24 +15,24 @@ pub type Error = ValueWriteError;
 ///
 /// # Note
 ///
-/// MessagePack has no specification about how to encode variant types. Thus we are free to do
-/// whatever we want, so the given chose may be not ideal for you.
+/// MessagePack has no specification about how to encode variant types. Thus we
+/// are free to do whatever we want, so the given chose may be not ideal for
+/// you.
 ///
 /// Every Rust variant value can be represented as a tuple of index and a value.
 ///
-/// All instances of `ErrorKind::Interrupted` are handled by this function and the underlying
-/// operation is retried.
+/// All instances of `ErrorKind::Interrupted` are handled by this function and
+/// the underlying operation is retried.
 // TODO: Docs. Examples, variant encoding policy.
 pub struct Encoder<'a> {
     wr: &'a mut Write,
 }
 
 impl<'a> Encoder<'a> {
-    /// Creates a new MessagePack encoder whose output will be written to the writer specified.
+    /// Creates a new MessagePack encoder whose output will be written to the
+    /// writer specified.
     pub fn new(wr: &'a mut Write) -> Encoder<'a> {
-        Encoder {
-            wr: wr,
-        }
+        Encoder { wr: wr }
     }
 }
 
@@ -108,9 +110,11 @@ impl<'a> rustc_serialize::Encoder for Encoder<'a> {
 
     /// Encodes and attempts to write the enum value into the Write.
     ///
-    /// Currently we encode variant types as a tuple of id with array of args, like: [id, [args...]]
+    /// Currently we encode variant types as a tuple of id with array of args,
+    /// like: [id, [args...]]
     fn emit_enum<F>(&mut self, _name: &str, f: F) -> Result<(), Error>
-        where F: FnOnce(&mut Self) -> Result<(), Error>
+    where
+        F: FnOnce(&mut Self) -> Result<(), Error>,
     {
         // Mark that we want to encode a variant type.
         try!(write_array_len(&mut self.wr, 2));
@@ -120,8 +124,15 @@ impl<'a> rustc_serialize::Encoder for Encoder<'a> {
     }
 
     /// Encodes and attempts to write a concrete variant value.
-    fn emit_enum_variant<F>(&mut self, _name: &str, id: usize, len: usize, f: F) -> Result<(), Error>
-        where F: FnOnce(&mut Self) -> Result<(), Error>
+    fn emit_enum_variant<F>(
+        &mut self,
+        _name: &str,
+        id: usize,
+        len: usize,
+        f: F,
+    ) -> Result<(), Error>
+    where
+        F: FnOnce(&mut Self) -> Result<(), Error>,
     {
         // Encode a value position...
         try!(self.emit_usize(id));
@@ -135,62 +146,83 @@ impl<'a> rustc_serialize::Encoder for Encoder<'a> {
 
     /// Encodes and attempts to write a concrete variant value arguments.
     fn emit_enum_variant_arg<F>(&mut self, _idx: usize, f: F) -> Result<(), Error>
-        where F: FnOnce(&mut Self) -> Result<(), Error>
+    where
+        F: FnOnce(&mut Self) -> Result<(), Error>,
     {
         f(self)
     }
 
-    fn emit_enum_struct_variant<F>(&mut self, _name: &str, _id: usize, _len: usize, _f: F) -> Result<(), Error>
-        where F: FnOnce(&mut Self) -> Result<(), Error>
+    fn emit_enum_struct_variant<F>(
+        &mut self,
+        _name: &str,
+        _id: usize,
+        _len: usize,
+        _f: F,
+    ) -> Result<(), Error>
+    where
+        F: FnOnce(&mut Self) -> Result<(), Error>,
     {
         unimplemented!()
     }
 
-    fn emit_enum_struct_variant_field<F>(&mut self, _name: &str, _idx: usize, _f: F) -> Result<(), Error>
-        where F: FnOnce(&mut Self) -> Result<(), Error>
+    fn emit_enum_struct_variant_field<F>(
+        &mut self,
+        _name: &str,
+        _idx: usize,
+        _f: F,
+    ) -> Result<(), Error>
+    where
+        F: FnOnce(&mut Self) -> Result<(), Error>,
     {
         unimplemented!()
     }
 
     fn emit_struct<F>(&mut self, _name: &str, len: usize, f: F) -> Result<(), Error>
-        where F: FnOnce(&mut Self) -> Result<(), Error>
+    where
+        F: FnOnce(&mut Self) -> Result<(), Error>,
     {
         self.emit_tuple(len, f)
     }
 
     fn emit_struct_field<F>(&mut self, _name: &str, _idx: usize, f: F) -> Result<(), Error>
-        where F: FnOnce(&mut Self) -> Result<(), Error>
+    where
+        F: FnOnce(&mut Self) -> Result<(), Error>,
     {
         f(self)
     }
 
     fn emit_tuple<F>(&mut self, len: usize, f: F) -> Result<(), Error>
-        where F: FnOnce(&mut Self) -> Result<(), Error>
+    where
+        F: FnOnce(&mut Self) -> Result<(), Error>,
     {
         try!(write_array_len(&mut self.wr, len as u32));
         f(self)
     }
 
     fn emit_tuple_arg<F>(&mut self, _idx: usize, f: F) -> Result<(), Error>
-        where F: FnOnce(&mut Self) -> Result<(), Error>
+    where
+        F: FnOnce(&mut Self) -> Result<(), Error>,
     {
         f(self)
     }
 
     fn emit_tuple_struct<F>(&mut self, _name: &str, len: usize, f: F) -> Result<(), Error>
-        where F: FnOnce(&mut Self) -> Result<(), Error>
+    where
+        F: FnOnce(&mut Self) -> Result<(), Error>,
     {
         self.emit_tuple(len, f)
     }
 
     fn emit_tuple_struct_arg<F>(&mut self, _idx: usize, f: F) -> Result<(), Error>
-        where F: FnOnce(&mut Self) -> Result<(), Error>
+    where
+        F: FnOnce(&mut Self) -> Result<(), Error>,
     {
         f(self)
     }
 
     fn emit_option<F>(&mut self, f: F) -> Result<(), Error>
-        where F: FnOnce(&mut Self) -> Result<(), Error>
+    where
+        F: FnOnce(&mut Self) -> Result<(), Error>,
     {
         f(self)
     }
@@ -200,40 +232,46 @@ impl<'a> rustc_serialize::Encoder for Encoder<'a> {
     }
 
     fn emit_option_some<F>(&mut self, f: F) -> Result<(), Error>
-        where F: FnOnce(&mut Self) -> Result<(), Error>
+    where
+        F: FnOnce(&mut Self) -> Result<(), Error>,
     {
         f(self)
     }
 
     // TODO: Check len, overflow is possible.
     fn emit_seq<F>(&mut self, len: usize, f: F) -> Result<(), Error>
-        where F: FnOnce(&mut Self) -> Result<(), Error>
+    where
+        F: FnOnce(&mut Self) -> Result<(), Error>,
     {
         try!(write_array_len(&mut self.wr, len as u32));
         f(self)
     }
 
     fn emit_seq_elt<F>(&mut self, _idx: usize, f: F) -> Result<(), Error>
-        where F: FnOnce(&mut Self) -> Result<(), Error>
+    where
+        F: FnOnce(&mut Self) -> Result<(), Error>,
     {
         f(self)
     }
 
     fn emit_map<F>(&mut self, len: usize, f: F) -> Result<(), Error>
-        where F: FnOnce(&mut Self) -> Result<(), Error>
+    where
+        F: FnOnce(&mut Self) -> Result<(), Error>,
     {
         try!(write_map_len(&mut self.wr, len as u32));
         f(self)
     }
 
     fn emit_map_elt_key<F>(&mut self, _idx: usize, f: F) -> Result<(), Error>
-        where F: FnOnce(&mut Self) -> Result<(), Error>
+    where
+        F: FnOnce(&mut Self) -> Result<(), Error>,
     {
         f(self)
     }
 
     fn emit_map_elt_val<F>(&mut self, _idx: usize, f: F) -> Result<(), Error>
-        where F: FnOnce(&mut Self) -> Result<(), Error>
+    where
+        F: FnOnce(&mut Self) -> Result<(), Error>,
     {
         f(self)
     }

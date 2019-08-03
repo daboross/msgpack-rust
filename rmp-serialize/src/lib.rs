@@ -6,8 +6,8 @@
 //! extern crate rmp_serialize;
 //! extern crate rustc_serialize;
 //!
-//! use rustc_serialize::Encodable;
 //! use rmp_serialize::Encoder;
+//! use rustc_serialize::Encodable;
 //!
 //! fn main() {
 //!     let val = (42u8, "the Answer");
@@ -17,7 +17,10 @@
 //!
 //!     val.encode(&mut Encoder::new(&mut &mut buf[..]));
 //!
-//!     assert_eq!([0x92, 0x2a, 0xaa, 0x74, 0x68, 0x65, 0x20, 0x41, 0x6e, 0x73, 0x77, 0x65, 0x72], buf);
+//!     assert_eq!(
+//!         [0x92, 0x2a, 0xaa, 0x74, 0x68, 0x65, 0x20, 0x41, 0x6e, 0x73, 0x77, 0x65, 0x72],
+//!         buf
+//!     );
 //! }
 //! ```
 //!
@@ -27,11 +30,13 @@
 //! extern crate rmp_serialize;
 //! extern crate rustc_serialize;
 //!
-//! use rustc_serialize::Decodable;
 //! use rmp_serialize::Decoder;
+//! use rustc_serialize::Decodable;
 //!
 //! fn main() {
-//!     let buf = [0x92, 0x2a, 0xaa, 0x74, 0x68, 0x65, 0x20, 0x41, 0x6e, 0x73, 0x77, 0x65, 0x72];
+//!     let buf = [
+//!         0x92, 0x2a, 0xaa, 0x74, 0x68, 0x65, 0x20, 0x41, 0x6e, 0x73, 0x77, 0x65, 0x72,
+//!     ];
 //!
 //!     let mut decoder = Decoder::new(&buf[..]);
 //!
@@ -41,16 +46,17 @@
 //! }
 //! ```
 //!
-//! RMP also allows to automatically serialize/deserialize custom structures using rustc_serialize
-//! reflection. To enable this feature, derive RustcEncodable and RustcDecodable attributes as
-//! shown in the following example:
+//! RMP also allows to automatically serialize/deserialize custom structures
+//! using rustc_serialize reflection. To enable this feature, derive
+//! RustcEncodable and RustcDecodable attributes as shown in the following
+//! example:
 //!
 //! ```rust
 //! extern crate rmp_serialize;
 //! extern crate rustc_serialize;
 //!
-//! use rustc_serialize::{Encodable, Decodable};
-//! use rmp_serialize::{Encoder, Decoder};
+//! use rmp_serialize::{Decoder, Encoder};
+//! use rustc_serialize::{Decodable, Encodable};
 //!
 //! #[derive(RustcEncodable, RustcDecodable, PartialEq, Debug)]
 //! struct Custom {
@@ -59,13 +65,19 @@
 //! }
 //!
 //! fn main() {
-//!     let val = Custom { id: 42u32, key: "the Answer".to_string() };
+//!     let val = Custom {
+//!         id: 42u32,
+//!         key: "the Answer".to_string(),
+//!     };
 //!
 //!     let mut buf = [0u8; 13];
 //!
 //!     val.encode(&mut Encoder::new(&mut &mut buf[..]));
 //!
-//!     assert_eq!([0x92, 0x2a, 0xaa, 0x74, 0x68, 0x65, 0x20, 0x41, 0x6e, 0x73, 0x77, 0x65, 0x72], buf);
+//!     assert_eq!(
+//!         [0x92, 0x2a, 0xaa, 0x74, 0x68, 0x65, 0x20, 0x41, 0x6e, 0x73, 0x77, 0x65, 0x72],
+//!         buf
+//!     );
 //!
 //!     // Now try to unpack the buffer into the initial struct.
 //!     let mut decoder = Decoder::new(&buf[..]);

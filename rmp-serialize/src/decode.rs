@@ -1,12 +1,18 @@
-use std::error;
-use std::fmt::{self, Display, Formatter};
-use std::io::Read;
+use std::{
+    error,
+    fmt::{self, Display, Formatter},
+    io::Read,
+};
 
 use rustc_serialize;
 
-use rmp::Marker;
-use rmp::decode::{ValueReadError, NumValueReadError, DecodeStringError, read_nil, read_bool, read_int, read_f32,
-                  read_f64, read_str_len, read_array_len, read_map_len};
+use rmp::{
+    decode::{
+        read_array_len, read_bool, read_f32, read_f64, read_int, read_map_len, read_nil,
+        read_str_len, DecodeStringError, NumValueReadError, ValueReadError,
+    },
+    Marker,
+};
 
 /// Unstable: docs; incomplete
 #[derive(Debug)]
@@ -85,8 +91,8 @@ impl<'a> From<DecodeStringError<'a>> for Error {
 
 /// # Note
 ///
-/// All instances of `ErrorKind::Interrupted` are handled by this function and the underlying
-/// operation is retried.
+/// All instances of `ErrorKind::Interrupted` are handled by this function and
+/// the underlying operation is retried.
 // TODO: Docs. Examples.
 pub struct Decoder<R: Read> {
     rd: R,
@@ -188,13 +194,17 @@ impl<R: Read> rustc_serialize::Decoder for Decoder<R> {
 
         let mut buf: Vec<u8> = vec![0u8; len as usize];
 
-        try!(self.rd.read_exact(&mut buf).map_err(|err| Error::InvalidDataRead(err)));
+        try!(self
+            .rd
+            .read_exact(&mut buf)
+            .map_err(|err| Error::InvalidDataRead(err)));
 
         String::from_utf8(buf).map_err(|err| Error::Uncategorized(format!("{}", err)))
     }
 
     fn read_enum<T, F>(&mut self, _name: &str, f: F) -> Result<T, Error>
-        where F: FnOnce(&mut Self) -> Result<T, Error>
+    where
+        F: FnOnce(&mut Self) -> Result<T, Error>,
     {
         let len = try!(read_array_len(&mut self.rd));
         if len == 2 {
@@ -205,7 +215,8 @@ impl<R: Read> rustc_serialize::Decoder for Decoder<R> {
     }
 
     fn read_enum_variant<T, F>(&mut self, names: &[&str], mut f: F) -> Result<T, Error>
-        where F: FnMut(&mut Self, usize) -> Result<T, Error>
+    where
+        F: FnMut(&mut Self, usize) -> Result<T, Error>,
     {
         let id = try!(self.read_usize());
 
@@ -219,37 +230,48 @@ impl<R: Read> rustc_serialize::Decoder for Decoder<R> {
     }
 
     fn read_enum_variant_arg<T, F>(&mut self, _idx: usize, f: F) -> Result<T, Error>
-        where F: FnOnce(&mut Self) -> Result<T, Error>
+    where
+        F: FnOnce(&mut Self) -> Result<T, Error>,
     {
         f(self)
     }
 
     fn read_enum_struct_variant<T, F>(&mut self, names: &[&str], f: F) -> Result<T, Error>
-        where F: FnMut(&mut Self, usize) -> Result<T, Error>
+    where
+        F: FnMut(&mut Self, usize) -> Result<T, Error>,
     {
         self.read_enum_variant(names, f)
     }
 
-    fn read_enum_struct_variant_field<T, F>(&mut self, _name: &str, _idx: usize, f: F) -> Result<T, Error>
-        where F: FnOnce(&mut Self) -> Result<T, Error>
+    fn read_enum_struct_variant_field<T, F>(
+        &mut self,
+        _name: &str,
+        _idx: usize,
+        f: F,
+    ) -> Result<T, Error>
+    where
+        F: FnOnce(&mut Self) -> Result<T, Error>,
     {
         f(self)
     }
 
     fn read_struct<T, F>(&mut self, _name: &str, len: usize, f: F) -> Result<T, Error>
-        where F: FnOnce(&mut Self) -> Result<T, Error>
+    where
+        F: FnOnce(&mut Self) -> Result<T, Error>,
     {
         self.read_tuple(len, f)
     }
 
     fn read_struct_field<T, F>(&mut self, _name: &str, _idx: usize, f: F) -> Result<T, Error>
-        where F: FnOnce(&mut Self) -> Result<T, Error>
+    where
+        F: FnOnce(&mut Self) -> Result<T, Error>,
     {
         f(self)
     }
 
     fn read_tuple<T, F>(&mut self, len: usize, f: F) -> Result<T, Error>
-        where F: FnOnce(&mut Self) -> Result<T, Error>
+    where
+        F: FnOnce(&mut Self) -> Result<T, Error>,
     {
         let actual = try!(read_array_len(&mut self.rd));
 
@@ -262,25 +284,29 @@ impl<R: Read> rustc_serialize::Decoder for Decoder<R> {
 
     // In case of MessagePack don't care about argument indexing.
     fn read_tuple_arg<T, F>(&mut self, _idx: usize, f: F) -> Result<T, Error>
-        where F: FnOnce(&mut Self) -> Result<T, Error>
+    where
+        F: FnOnce(&mut Self) -> Result<T, Error>,
     {
         f(self)
     }
 
     fn read_tuple_struct<T, F>(&mut self, _name: &str, _len: usize, _f: F) -> Result<T, Error>
-        where F: FnOnce(&mut Self) -> Result<T, Error>
+    where
+        F: FnOnce(&mut Self) -> Result<T, Error>,
     {
         unimplemented!()
     }
     fn read_tuple_struct_arg<T, F>(&mut self, _idx: usize, _f: F) -> Result<T, Error>
-        where F: FnOnce(&mut Self) -> Result<T, Error>
+    where
+        F: FnOnce(&mut Self) -> Result<T, Error>,
     {
         unimplemented!()
     }
 
     /// We treat Value::Null as None.
     fn read_option<T, F>(&mut self, mut f: F) -> Result<T, Error>
-        where F: FnMut(&mut Self, bool) -> Result<T, Error>
+    where
+        F: FnMut(&mut Self, bool) -> Result<T, Error>,
     {
         // Primarily try to read optimisticly.
         match f(self, true) {
@@ -291,7 +317,8 @@ impl<R: Read> rustc_serialize::Decoder for Decoder<R> {
     }
 
     fn read_seq<T, F>(&mut self, f: F) -> Result<T, Error>
-        where F: FnOnce(&mut Self, usize) -> Result<T, Error>
+    where
+        F: FnOnce(&mut Self, usize) -> Result<T, Error>,
     {
         let len = try!(read_array_len(&mut self.rd)) as usize;
 
@@ -299,13 +326,15 @@ impl<R: Read> rustc_serialize::Decoder for Decoder<R> {
     }
 
     fn read_seq_elt<T, F>(&mut self, _idx: usize, f: F) -> Result<T, Error>
-        where F: FnOnce(&mut Self) -> Result<T, Error>
+    where
+        F: FnOnce(&mut Self) -> Result<T, Error>,
     {
         f(self)
     }
 
     fn read_map<T, F>(&mut self, f: F) -> Result<T, Error>
-        where F: FnOnce(&mut Self, usize) -> Result<T, Error>
+    where
+        F: FnOnce(&mut Self, usize) -> Result<T, Error>,
     {
         let len = try!(read_map_len(&mut self.rd)) as usize;
 
@@ -313,13 +342,15 @@ impl<R: Read> rustc_serialize::Decoder for Decoder<R> {
     }
 
     fn read_map_elt_key<T, F>(&mut self, _idx: usize, f: F) -> Result<T, Error>
-        where F: FnOnce(&mut Self) -> Result<T, Error>
+    where
+        F: FnOnce(&mut Self) -> Result<T, Error>,
     {
         f(self)
     }
 
     fn read_map_elt_val<T, F>(&mut self, _idx: usize, f: F) -> Result<T, Error>
-        where F: FnOnce(&mut Self) -> Result<T, Error>
+    where
+        F: FnOnce(&mut Self) -> Result<T, Error>,
     {
         f(self)
     }
