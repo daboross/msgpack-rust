@@ -8,8 +8,7 @@ use std::io::Cursor;
 
 use serde::Deserialize;
 
-use rmps::Deserializer;
-use rmps::decode::Error;
+use rmps::{decode::Error, Deserializer};
 
 #[test]
 fn pass_newtype() {
@@ -46,13 +45,13 @@ fn pass_single_field_struct() {
 
     #[derive(Debug, PartialEq, Deserialize)]
     struct Struct {
-        inner: u32
+        inner: u32,
     };
 
     let mut de = Deserializer::new(cur);
     let actual: Struct = Deserialize::deserialize(&mut de).unwrap();
 
-    assert_eq!(Struct{inner: 42}, actual);
+    assert_eq!(Struct { inner: 42 }, actual);
 }
 
 #[test]
@@ -63,13 +62,19 @@ fn pass_struct() {
     #[derive(Debug, PartialEq, Deserialize)]
     struct Decoded {
         id: u32,
-        value: u32
+        value: u32,
     };
 
     let mut de = Deserializer::new(cur);
     let actual: Decoded = Deserialize::deserialize(&mut de).unwrap();
 
-    assert_eq!(Decoded { id: 42, value: 100500 }, actual);
+    assert_eq!(
+        Decoded {
+            id: 42,
+            value: 100500
+        },
+        actual
+    );
 }
 
 #[test]
@@ -92,10 +97,15 @@ fn pass_struct_from_map() {
     ];
     let cur = Cursor::new(&buf[..]);
 
-    // It appears no special behavior is needed for deserializing structs encoded as maps.
+    // It appears no special behavior is needed for deserializing structs encoded as
+    // maps.
     let mut de = Deserializer::new(cur);
     let actual: Struct = Deserialize::deserialize(&mut de).unwrap();
-    let expected = Struct { et: "voila".into(), le: 0, shit: 1 };
+    let expected = Struct {
+        et: "voila".into(),
+        le: 0,
+        shit: 1,
+    };
 
     assert_eq!(expected, actual);
 }
@@ -117,8 +127,8 @@ fn pass_unit_variant() {
     let enum_a = Enum::deserialize(&mut de).unwrap();
     let enum_b = Enum::deserialize(&mut de).unwrap();
 
-    assert_eq!(enum_a , Enum::A);
-    assert_eq!(enum_b , Enum::B);
+    assert_eq!(enum_a, Enum::A);
+    assert_eq!(enum_b, Enum::B);
     assert_eq!(6, de.get_ref().position());
 }
 
@@ -173,7 +183,7 @@ fn fail_enum_map_mismatch() {
 
     match err.unwrap_err() {
         Error::LengthMismatch(2) => (),
-        other => panic!("unexpected result: {:?}", other)
+        other => panic!("unexpected result: {:?}", other),
     }
 }
 
@@ -194,7 +204,7 @@ fn fail_enum_overflow() {
 
     match actual.err().unwrap() {
         Error::Syntax(..) => (),
-        other => panic!("unexpected result: {:?}", other)
+        other => panic!("unexpected result: {:?}", other),
     }
 }
 
@@ -220,7 +230,9 @@ fn pass_struct_enum_with_arg() {
 #[test]
 fn pass_newtype_variant() {
     // The encoded bytearray is: {0 => 'le message'}.
-    let buf = [0x81, 0x0, 0xaa, 0x6c, 0x65, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65];
+    let buf = [
+        0x81, 0x0, 0xaa, 0x6c, 0x65, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65,
+    ];
     let cur = Cursor::new(&buf[..]);
 
     #[derive(Debug, PartialEq, Deserialize)]
@@ -238,11 +250,11 @@ fn pass_newtype_variant() {
     assert_eq!(buf.len() as u64, de.get_ref().position())
 }
 
-#[cfg(disabled)]  // This test doesn't actually compile anymore
+#[cfg(disabled)] // This test doesn't actually compile anymore
 #[test]
 fn pass_enum_custom_policy() {
-    use std::io::Read;
     use rmp_serde::decode::VariantVisitor;
+    use std::io::Read;
 
     // We expect enums to be endoded as id, [...] (without wrapping tuple).
 
@@ -263,14 +275,20 @@ fn pass_enum_custom_policy() {
         type Error = Error;
 
         fn deserialize<V>(&mut self, visitor: V) -> Result<V::Value, Error>
-            where V: serde::de::Visitor
+        where
+            V: serde::de::Visitor,
         {
             self.inner.deserialize(visitor)
         }
 
-        fn deserialize_enum<V>(&mut self, _enum: &str, _variants: &'static [&'static str], mut visitor: V)
-            -> Result<V::Value, Error>
-            where V: serde::de::EnumVisitor
+        fn deserialize_enum<V>(
+            &mut self,
+            _enum: &str,
+            _variants: &'static [&'static str],
+            mut visitor: V,
+        ) -> Result<V::Value, Error>
+        where
+            V: serde::de::EnumVisitor,
         {
             visitor.visit(VariantVisitor::new(&mut self.inner))
         }
@@ -282,7 +300,9 @@ fn pass_enum_custom_policy() {
         }
     }
 
-    let mut de = CustomDeserializer { inner: Deserializer::new(cur) };
+    let mut de = CustomDeserializer {
+        inner: Deserializer::new(cur),
+    };
     let actual: Enum = Deserialize::deserialize(&mut de).unwrap();
 
     assert_eq!(Enum::B, actual);
@@ -299,7 +319,10 @@ fn pass_struct_variant() {
     let out_first = vec![0x81, 0x00, 0x91, 0x2a];
     let out_second = vec![0x81, 0x01, 0x91, 0x2a];
 
-    for (expected, out) in vec![(Custom::First{ data: 42 }, out_first), (Custom::Second { data: 42 }, out_second)] {
+    for (expected, out) in vec![
+        (Custom::First { data: 42 }, out_first),
+        (Custom::Second { data: 42 }, out_second),
+    ] {
         let mut de = Deserializer::new(Cursor::new(&out[..]));
         let val: Custom = Deserialize::deserialize(&mut de).unwrap();
         assert_eq!(expected, val);
@@ -348,7 +371,9 @@ fn fail_internally_tagged_enum_tuple() {
 
 #[test]
 fn pass_internally_tagged_enum_struct() {
-    let buf = [130, 161, 116, 163, 70, 111, 111, 165, 118, 97, 108, 117, 101, 123];
+    let buf = [
+        130, 161, 116, 163, 70, 111, 111, 165, 118, 97, 108, 117, 101, 123,
+    ];
     let cur = Cursor::new(&buf[..]);
 
     #[derive(Debug, PartialEq, Deserialize)]
@@ -362,8 +387,7 @@ fn pass_internally_tagged_enum_struct() {
     let actual: Result<Enum, Error> = Deserialize::deserialize(&mut de);
 
     assert!(actual.is_ok());
-    assert_eq!(Enum::Foo{ value: 123 }, actual.unwrap())
-
+    assert_eq!(Enum::Foo { value: 123 }, actual.unwrap())
 }
 
 #[test]
@@ -386,7 +410,9 @@ fn pass_enum_with_one_arg() {
 
 #[test]
 fn pass_from_slice() {
-    let buf = [0x93, 0xa4, 0x4a, 0x6f, 0x68, 0x6e, 0xa5, 0x53, 0x6d, 0x69, 0x74, 0x68, 0x2a];
+    let buf = [
+        0x93, 0xa4, 0x4a, 0x6f, 0x68, 0x6e, 0xa5, 0x53, 0x6d, 0x69, 0x74, 0x68, 0x2a,
+    ];
 
     #[derive(Debug, PartialEq, Deserialize)]
     struct Person<'a> {
@@ -395,7 +421,14 @@ fn pass_from_slice() {
         age: u8,
     }
 
-    assert_eq!(Person { name: "John", surname: "Smith", age: 42 }, rmps::from_slice(&buf[..]).unwrap());
+    assert_eq!(
+        Person {
+            name: "John",
+            surname: "Smith",
+            age: 42
+        },
+        rmps::from_slice(&buf[..]).unwrap()
+    );
 }
 
 #[test]
@@ -408,5 +441,11 @@ fn pass_from_ref() {
         age: u8,
     }
 
-    assert_eq!(Dog { name: "Bobby", age: 8 }, rmps::from_read_ref(&buf).unwrap());
+    assert_eq!(
+        Dog {
+            name: "Bobby",
+            age: 8
+        },
+        rmps::from_read_ref(&buf).unwrap()
+    );
 }

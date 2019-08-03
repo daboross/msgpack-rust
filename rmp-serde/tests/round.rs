@@ -4,11 +4,10 @@ extern crate serde_derive;
 extern crate rmp;
 extern crate rmp_serde as rmps;
 
-use std::borrow::Cow;
-use std::io::Cursor;
+use std::{borrow::Cow, io::Cursor};
 
-use serde::{Deserialize, Serialize};
 use rmps::{Deserializer, Serializer};
+use serde::{Deserialize, Serialize};
 
 #[test]
 fn round_trip_option() {
@@ -49,7 +48,9 @@ fn round_trip_cow() {
         v: Cow<'a, [u8]>,
     }
 
-    let expected = Foo { v : Cow::Borrowed(&[]) };
+    let expected = Foo {
+        v: Cow::Borrowed(&[]),
+    };
 
     let mut buf = Vec::new();
     expected.serialize(&mut Serializer::new(&mut buf)).unwrap();
@@ -61,16 +62,15 @@ fn round_trip_cow() {
 
 #[test]
 fn round_trip_option_cow() {
-    use std::borrow::Cow;
-    use std::io::Cursor;
     use serde::Serialize;
+    use std::{borrow::Cow, io::Cursor};
 
     #[derive(Serialize, Deserialize, Debug, PartialEq)]
     struct Foo<'a> {
         v: Option<Cow<'a, [u8]>>,
     }
 
-    let expected = Foo { v : None };
+    let expected = Foo { v: None };
 
     let mut buf = Vec::new();
     expected.serialize(&mut Serializer::new(&mut buf)).unwrap();
@@ -172,7 +172,7 @@ fn round_trip_untagged_enum_with_enum_associated_data() {
         B,
         C(String),
         D(u64, u64, u64),
-        E{f1: String},
+        E { f1: String },
     }
 
     let data1_1 = Foo::A(Bar::B);
@@ -185,22 +185,22 @@ fn round_trip_untagged_enum_with_enum_associated_data() {
     let data2_2 = rmps::from_slice(&bytes_2).unwrap();
     assert_eq!(data2_1, data2_2);
 
-    let data3_1 = Foo::A(Bar::D(1,2,3));
+    let data3_1 = Foo::A(Bar::D(1, 2, 3));
     let bytes_3 = rmps::to_vec(&data3_1).unwrap();
     let data3_2 = rmps::from_slice(&bytes_3).unwrap();
     assert_eq!(data3_1, data3_2);
 
-    let data4_1 = Foo::A(Bar::E{f1: "Hello".into()});
+    let data4_1 = Foo::A(Bar::E { f1: "Hello".into() });
     let bytes_4 = rmps::to_vec(&data4_1).unwrap();
     let data4_2 = rmps::from_slice(&bytes_4).unwrap();
     assert_eq!(data4_1, data4_2);
 }
 
-// Checks whether deserialization and serialization can both work with structs as maps
+// Checks whether deserialization and serialization can both work with structs
+// as maps
 #[test]
 fn round_struct_as_map() {
-    use rmps::to_vec_named;
-    use rmps::decode::from_slice;
+    use rmps::{decode::from_slice, to_vec_named};
 
     #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
     struct Dog1 {
@@ -232,8 +232,7 @@ fn round_struct_as_map() {
 #[test]
 fn round_struct_as_map_in_vec() {
     // See: issue #205
-    use rmps::decode::from_slice;
-    use rmps::to_vec_named;
+    use rmps::{decode::from_slice, to_vec_named};
 
     #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
     struct Dog1 {
@@ -333,7 +332,8 @@ fn round_trip_unit_struct_untagged_enum() {
     }
 }
 
-// Checks whether deserialization and serialization can both work with enum variants as strings
+// Checks whether deserialization and serialization can both work with enum
+// variants as strings
 #[test]
 fn round_variant_string() {
     use rmps::decode::from_slice;
@@ -354,24 +354,30 @@ fn round_variant_string() {
 
     // use helper macro so that we can test many combinations at once
     macro_rules! do_test {
-        ($ser:expr) => {
-            {
-                let animal1 = Animal1::Dog { breed: "Pitbull".to_owned() };
-                let expected = Animal2::Dog { breed: "Pitbull".to_owned() };
-                let mut buf = Vec::new();
-                animal1.serialize(&mut $ser(&mut buf)).unwrap();
+        ($ser:expr) => {{
+            let animal1 = Animal1::Dog {
+                breed: "Pitbull".to_owned(),
+            };
+            let expected = Animal2::Dog {
+                breed: "Pitbull".to_owned(),
+            };
+            let mut buf = Vec::new();
+            animal1.serialize(&mut $ser(&mut buf)).unwrap();
 
-                let deserialized: Animal2 = from_slice(&buf).unwrap();
-                assert_eq!(deserialized, expected);
-            }
-        }
+            let deserialized: Animal2 = from_slice(&buf).unwrap();
+            assert_eq!(deserialized, expected);
+        }};
     }
 
     do_test!(|b| Serializer::new(b).with_string_variants());
     do_test!(|b| Serializer::new(b).with_struct_map().with_string_variants());
-    do_test!(|b| Serializer::new(b).with_struct_tuple().with_string_variants());
+    do_test!(|b| Serializer::new(b)
+        .with_struct_tuple()
+        .with_string_variants());
     do_test!(|b| Serializer::new(b).with_string_variants().with_struct_map());
-    do_test!(|b| Serializer::new(b).with_string_variants().with_struct_tuple());
+    do_test!(|b| Serializer::new(b)
+        .with_string_variants()
+        .with_struct_tuple());
     do_test!(|b| {
         Serializer::new(b)
             .with_string_variants()
@@ -380,5 +386,7 @@ fn round_variant_string() {
             .with_struct_tuple()
             .with_struct_map()
     });
-    do_test!(|b| Serializer::new(b).with_integer_variants().with_string_variants());
+    do_test!(|b| Serializer::new(b)
+        .with_integer_variants()
+        .with_string_variants());
 }
