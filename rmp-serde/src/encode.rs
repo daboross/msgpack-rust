@@ -539,6 +539,11 @@ where
         C::write_variant_ident(self, id, variant)?;
         self.serialize_struct(name, len)
     }
+
+    fn is_human_readable(&self) -> bool {
+        // msgpack is at its core not a human readable format.
+        false
+    }
 }
 
 /// Serialize the given data structure as MessagePack into the I/O stream.
