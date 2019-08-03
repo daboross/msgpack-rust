@@ -229,7 +229,7 @@ impl<W: Write, C> UnderlyingWrite for Serializer<W, C> {
 
 /// Part of serde serialization API.
 #[derive(Debug)]
-pub struct Compound<'a, W: 'a, C> {
+pub struct Compound<'a, W: 'a, C: 'a> {
     se: &'a mut Serializer<W, C>,
 }
 
