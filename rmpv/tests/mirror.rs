@@ -2,12 +2,11 @@ extern crate rmpv;
 #[macro_use]
 extern crate quickcheck;
 
-use rmpv::Value;
-use rmpv::decode::read_value;
-use rmpv::encode::write_value;
+use rmpv::{decode::read_value, encode::write_value, Value};
 
 fn mirror_test<T: Clone>(xs: T) -> bool
-    where Value: From<T>
+where
+    Value: From<T>,
 {
     let mut buf = Vec::new();
     write_value(&mut buf, &Value::from(xs.clone())).unwrap();

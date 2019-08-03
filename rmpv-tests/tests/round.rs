@@ -7,8 +7,7 @@ extern crate rmpv;
 
 use std::fmt::Debug;
 
-use serde::Serialize;
-use serde::de::DeserializeOwned;
+use serde::{de::DeserializeOwned, Serialize};
 use serde_bytes::ByteBuf;
 
 use rmpv::Value;
@@ -20,7 +19,8 @@ use rmpv::Value;
 /// - `[u8]`  -> `Value` == `Value`.
 /// - `Value` -> `T`     == `T`.
 fn test_round<'de, T>(var: T, val: Value)
-    where T: Debug + PartialEq + Serialize + DeserializeOwned
+where
+    T: Debug + PartialEq + Serialize + DeserializeOwned,
 {
     // Serialize part.
     // Test that `T` -> `[u8]` equals with serialization from `Value` -> `[u8]`.
@@ -96,13 +96,19 @@ fn pass_str() {
 
 #[test]
 fn pass_bin() {
-    test_round(ByteBuf::from(&[0xcc, 0x80][..]), Value::from(&[0xcc, 0x80][..]));
+    test_round(
+        ByteBuf::from(&[0xcc, 0x80][..]),
+        Value::from(&[0xcc, 0x80][..]),
+    );
 }
 
 #[test]
 fn pass_vec() {
     test_round([0, 42], Value::from(vec![Value::from(0), Value::from(42)]));
-    test_round(vec![0, 42], Value::from(vec![Value::from(0), Value::from(42)]));
+    test_round(
+        vec![0, 42],
+        Value::from(vec![Value::from(0), Value::from(42)]),
+    );
 }
 
 #[test]
