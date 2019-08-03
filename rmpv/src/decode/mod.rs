@@ -1,16 +1,18 @@
-use std::error;
-use std::fmt::{self, Display, Formatter};
-use std::io::{self, ErrorKind};
+use std::{
+    error,
+    fmt::{self, Display, Formatter},
+    io::{self, ErrorKind},
+};
 
 use rmp::decode::{MarkerReadError, ValueReadError};
 
 pub mod value;
 pub mod value_ref;
 
-pub use self::value::read_value;
-pub use self::value_ref::read_value_ref;
+pub use self::{value::read_value, value_ref::read_value_ref};
 
-/// This type represents all possible errors that can occur when deserializing a value.
+/// This type represents all possible errors that can occur when deserializing a
+/// value.
 #[derive(Debug)]
 pub enum Error {
     /// Error while reading marker byte.
@@ -78,8 +80,7 @@ impl From<ValueReadError> for Error {
 impl Into<io::Error> for Error {
     fn into(self) -> io::Error {
         match self {
-            Error::InvalidMarkerRead(err) |
-            Error::InvalidDataRead(err) => err,
+            Error::InvalidMarkerRead(err) | Error::InvalidDataRead(err) => err,
         }
     }
 }

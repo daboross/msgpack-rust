@@ -8,15 +8,17 @@
 #[cfg(feature = "with-serde")]
 #[macro_use]
 extern crate serde;
+extern crate num_traits;
+extern crate rmp;
 #[cfg(feature = "with-serde")]
 extern crate serde_bytes;
-extern crate rmp;
-extern crate num_traits;
 
-use std::borrow::Cow;
-use std::fmt::{self, Debug, Display};
-use std::ops::Index;
-use std::str::Utf8Error;
+use std::{
+    borrow::Cow,
+    fmt::{self, Debug, Display},
+    ops::Index,
+    str::Utf8Error,
+};
 
 use num_traits::NumCast;
 
@@ -36,7 +38,8 @@ enum IntPriv {
 
 /// Represents a MessagePack integer, whether signed or unsigned.
 ///
-/// A `Value` or `ValueRef` that contains integer can be constructed using `From` trait.
+/// A `Value` or `ValueRef` that contains integer can be constructed using
+/// `From` trait.
 #[derive(Copy, Clone, PartialEq)]
 pub struct Integer {
     n: IntPriv,
@@ -106,40 +109,54 @@ impl Display for Integer {
 
 impl From<u8> for Integer {
     fn from(n: u8) -> Self {
-        Integer { n: IntPriv::PosInt(n as u64) }
+        Integer {
+            n: IntPriv::PosInt(n as u64),
+        }
     }
 }
 
 impl From<u16> for Integer {
     fn from(n: u16) -> Self {
-        Integer { n: IntPriv::PosInt(n as u64) }
+        Integer {
+            n: IntPriv::PosInt(n as u64),
+        }
     }
 }
 
 impl From<u32> for Integer {
     fn from(n: u32) -> Self {
-        Integer { n: IntPriv::PosInt(n as u64) }
+        Integer {
+            n: IntPriv::PosInt(n as u64),
+        }
     }
 }
 
 impl From<u64> for Integer {
     fn from(n: u64) -> Self {
-        Integer { n: IntPriv::PosInt(n as u64) }
+        Integer {
+            n: IntPriv::PosInt(n as u64),
+        }
     }
 }
 
 impl From<usize> for Integer {
     fn from(n: usize) -> Self {
-        Integer { n: IntPriv::PosInt(n as u64) }
+        Integer {
+            n: IntPriv::PosInt(n as u64),
+        }
     }
 }
 
 impl From<i8> for Integer {
     fn from(n: i8) -> Self {
         if n < 0 {
-            Integer { n: IntPriv::NegInt(n as i64) }
+            Integer {
+                n: IntPriv::NegInt(n as i64),
+            }
         } else {
-            Integer { n: IntPriv::PosInt(n as u64) }
+            Integer {
+                n: IntPriv::PosInt(n as u64),
+            }
         }
     }
 }
@@ -147,9 +164,13 @@ impl From<i8> for Integer {
 impl From<i16> for Integer {
     fn from(n: i16) -> Self {
         if n < 0 {
-            Integer { n: IntPriv::NegInt(n as i64) }
+            Integer {
+                n: IntPriv::NegInt(n as i64),
+            }
         } else {
-            Integer { n: IntPriv::PosInt(n as u64) }
+            Integer {
+                n: IntPriv::PosInt(n as u64),
+            }
         }
     }
 }
@@ -157,9 +178,13 @@ impl From<i16> for Integer {
 impl From<i32> for Integer {
     fn from(n: i32) -> Self {
         if n < 0 {
-            Integer { n: IntPriv::NegInt(n as i64) }
+            Integer {
+                n: IntPriv::NegInt(n as i64),
+            }
         } else {
-            Integer { n: IntPriv::PosInt(n as u64) }
+            Integer {
+                n: IntPriv::PosInt(n as u64),
+            }
         }
     }
 }
@@ -167,9 +192,13 @@ impl From<i32> for Integer {
 impl From<i64> for Integer {
     fn from(n: i64) -> Self {
         if n < 0 {
-            Integer { n: IntPriv::NegInt(n as i64) }
+            Integer {
+                n: IntPriv::NegInt(n as i64),
+            }
         } else {
-            Integer { n: IntPriv::PosInt(n as u64) }
+            Integer {
+                n: IntPriv::PosInt(n as u64),
+            }
         }
     }
 }
@@ -177,24 +206,29 @@ impl From<i64> for Integer {
 impl From<isize> for Integer {
     fn from(n: isize) -> Self {
         if n < 0 {
-            Integer { n: IntPriv::NegInt(n as i64) }
+            Integer {
+                n: IntPriv::NegInt(n as i64),
+            }
         } else {
-            Integer { n: IntPriv::PosInt(n as u64) }
+            Integer {
+                n: IntPriv::PosInt(n as u64),
+            }
         }
     }
 }
 
 /// Represents an UTF-8 MessagePack string type.
 ///
-/// According to the MessagePack spec, string objects may contain invalid byte sequence and the
-/// behavior of a deserializer depends on the actual implementation when it received invalid byte
-/// sequence.
-/// Deserializers should provide functionality to get the original byte array so that applications
-/// can decide how to handle the object.
+/// According to the MessagePack spec, string objects may contain invalid byte
+/// sequence and the behavior of a deserializer depends on the actual
+/// implementation when it received invalid byte sequence.
+/// Deserializers should provide functionality to get the original byte array so
+/// that applications can decide how to handle the object.
 ///
-/// Summarizing, it's prohibited to instantiate a string type with invalid UTF-8 sequences, however
-/// it is possible to obtain an underlying bytes that were attempted to convert to a `String`. This
-/// may happen when trying to unpack strings that were decoded using older MessagePack spec with
+/// Summarizing, it's prohibited to instantiate a string type with invalid UTF-8
+/// sequences, however it is possible to obtain an underlying bytes that were
+/// attempted to convert to a `String`. This may happen when trying to unpack
+/// strings that were decoded using older MessagePack spec with
 /// raw types instead of string/binary.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Utf8String {
@@ -212,7 +246,8 @@ impl Utf8String {
         self.s.is_err()
     }
 
-    /// Returns the string reference if the string is valid UTF-8, or else `None`.
+    /// Returns the string reference if the string is valid UTF-8, or else
+    /// `None`.
     pub fn as_str(&self) -> Option<&str> {
         match self.s {
             Ok(ref s) => Some(s.as_str()),
@@ -220,8 +255,8 @@ impl Utf8String {
         }
     }
 
-    /// Returns the underlying `Utf8Error` if the string contains invalud UTF-8 sequence, or
-    /// else `None`.
+    /// Returns the underlying `Utf8Error` if the string contains invalud UTF-8
+    /// sequence, or else `None`.
     pub fn as_err(&self) -> Option<&Utf8Error> {
         match self.s {
             Ok(..) => None,
@@ -237,7 +272,8 @@ impl Utf8String {
         }
     }
 
-    /// Consumes this object, yielding the string if the string is valid UTF-8, or else `None`.
+    /// Consumes this object, yielding the string if the string is valid UTF-8,
+    /// or else `None`.
     pub fn into_str(self) -> Option<String> {
         self.s.ok()
     }
@@ -253,7 +289,9 @@ impl Utf8String {
     pub fn as_ref(&self) -> Utf8StringRef {
         match self.s {
             Ok(ref s) => Utf8StringRef { s: Ok(s.as_str()) },
-            Err((ref buf, err)) => Utf8StringRef { s: Err((&buf[..], err)) },
+            Err((ref buf, err)) => Utf8StringRef {
+                s: Err((&buf[..], err)),
+            },
         }
     }
 }
@@ -269,17 +307,13 @@ impl Display for Utf8String {
 
 impl<'a> From<String> for Utf8String {
     fn from(val: String) -> Self {
-        Utf8String {
-            s: Ok(val),
-        }
+        Utf8String { s: Ok(val) }
     }
 }
 
 impl<'a> From<&'a str> for Utf8String {
     fn from(val: &str) -> Self {
-        Utf8String {
-            s: Ok(val.into()),
-        }
+        Utf8String { s: Ok(val.into()) }
     }
 }
 
@@ -291,7 +325,8 @@ impl<'a> From<Cow<'a, str>> for Utf8String {
     }
 }
 
-/// A non-owning evil twin of `Utf8String`. Does exactly the same thing except ownership.
+/// A non-owning evil twin of `Utf8String`. Does exactly the same thing except
+/// ownership.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Utf8StringRef<'a> {
     s: Result<&'a str, (&'a [u8], Utf8Error)>,
@@ -308,7 +343,8 @@ impl<'a> Utf8StringRef<'a> {
         self.s.is_err()
     }
 
-    /// Returns the string reference if the string is valid UTF-8, or else `None`.
+    /// Returns the string reference if the string is valid UTF-8, or else
+    /// `None`.
     pub fn as_str(&self) -> Option<&str> {
         match self.s {
             Ok(ref s) => Some(s),
@@ -316,8 +352,8 @@ impl<'a> Utf8StringRef<'a> {
         }
     }
 
-    /// Returns the underlying `Utf8Error` if the string contains invalud UTF-8 sequence, or
-    /// else `None`.
+    /// Returns the underlying `Utf8Error` if the string contains invalud UTF-8
+    /// sequence, or else `None`.
     pub fn as_err(&self) -> Option<&Utf8Error> {
         match self.s {
             Ok(..) => None,
@@ -325,7 +361,8 @@ impl<'a> Utf8StringRef<'a> {
         }
     }
 
-    /// Returns a byte slice of this string contents no matter whether it's valid or not UTF-8.
+    /// Returns a byte slice of this string contents no matter whether it's
+    /// valid or not UTF-8.
     pub fn as_bytes(&self) -> &[u8] {
         match self.s {
             Ok(ref s) => s.as_bytes(),
@@ -333,7 +370,8 @@ impl<'a> Utf8StringRef<'a> {
         }
     }
 
-    /// Consumes this object, yielding the string if the string is valid UTF-8, or else `None`.
+    /// Consumes this object, yielding the string if the string is valid UTF-8,
+    /// or else `None`.
     pub fn into_str(self) -> Option<String> {
         self.s.ok().map(|s| s.into())
     }
@@ -358,9 +396,7 @@ impl<'a> Display for Utf8StringRef<'a> {
 
 impl<'a> From<&'a str> for Utf8StringRef<'a> {
     fn from(val: &'a str) -> Self {
-        Utf8StringRef {
-            s: Ok(val),
-        }
+        Utf8StringRef { s: Ok(val) }
     }
 }
 
@@ -368,7 +404,9 @@ impl<'a> Into<Utf8String> for Utf8StringRef<'a> {
     fn into(self) -> Utf8String {
         match self.s {
             Ok(s) => Utf8String { s: Ok(s.into()) },
-            Err((buf, err)) => Utf8String { s: Err((buf.into(), err)) }
+            Err((buf, err)) => Utf8String {
+                s: Err((buf.into(), err)),
+            },
         }
     }
 }
@@ -382,7 +420,8 @@ pub enum Value {
     Boolean(bool),
     /// Integer represents an integer.
     ///
-    /// A value of an `Integer` object is limited from `-(2^63)` upto `(2^64)-1`.
+    /// A value of an `Integer` object is limited from `-(2^63)` upto
+    /// `(2^64)-1`.
     ///
     /// # Examples
     ///
@@ -400,9 +439,10 @@ pub enum Value {
     ///
     /// # Note
     ///
-    /// String objects may contain invalid byte sequence and the behavior of a deserializer depends
-    /// on the actual implementation when it received invalid byte sequence. Deserializers should
-    /// provide functionality to get the original byte array so that applications can decide how to
+    /// String objects may contain invalid byte sequence and the behavior of a
+    /// deserializer depends on the actual implementation when it received
+    /// invalid byte sequence. Deserializers should provide functionality to
+    /// get the original byte array so that applications can decide how to
     /// handle the object
     String(Utf8String),
     /// Binary extending Raw type represents a byte array.
@@ -411,8 +451,9 @@ pub enum Value {
     Array(Vec<Value>),
     /// Map represents key-value pairs of objects.
     Map(Vec<(Value, Value)>),
-    /// Extended implements Extension interface: represents a tuple of type information and a byte
-    /// array where type information is an integer whose meaning is defined by applications.
+    /// Extended implements Extension interface: represents a tuple of type
+    /// information and a byte array where type information is an integer
+    /// whose meaning is defined by applications.
     Ext(i8, Vec<u8>),
 }
 
@@ -421,7 +462,8 @@ impl Value {
     ///
     /// # Panics
     ///
-    /// Panics in unable to allocate memory to keep all internal structures and buffers.
+    /// Panics in unable to allocate memory to keep all internal structures and
+    /// buffers.
     ///
     /// # Examples
     /// ```
@@ -430,17 +472,13 @@ impl Value {
     /// let val = Value::Array(vec![
     ///     Value::Nil,
     ///     Value::from(42),
-    ///     Value::Array(vec![
-    ///         Value::String("le message".into())
-    ///     ])
+    ///     Value::Array(vec![Value::String("le message".into())]),
     /// ]);
     ///
     /// let expected = ValueRef::Array(vec![
-    ///    ValueRef::Nil,
-    ///    ValueRef::from(42),
-    ///    ValueRef::Array(vec![
-    ///        ValueRef::from("le message"),
-    ///    ])
+    ///     ValueRef::Nil,
+    ///     ValueRef::from(42),
+    ///     ValueRef::Array(vec![ValueRef::from("le message")]),
     /// ]);
     ///
     /// assert_eq!(expected, val.as_ref());
@@ -454,12 +492,12 @@ impl Value {
             &Value::F64(val) => ValueRef::F64(val),
             &Value::String(ref val) => ValueRef::String(val.as_ref()),
             &Value::Binary(ref val) => ValueRef::Binary(val.as_slice()),
-            &Value::Array(ref val) => {
-                ValueRef::Array(val.iter().map(|v| v.as_ref()).collect())
-            }
-            &Value::Map(ref val) => {
-                ValueRef::Map(val.iter().map(|&(ref k, ref v)| (k.as_ref(), v.as_ref())).collect())
-            }
+            &Value::Array(ref val) => ValueRef::Array(val.iter().map(|v| v.as_ref()).collect()),
+            &Value::Map(ref val) => ValueRef::Map(
+                val.iter()
+                    .map(|&(ref k, ref v)| (k.as_ref(), v.as_ref()))
+                    .collect(),
+            ),
             &Value::Ext(ty, ref buf) => ValueRef::Ext(ty, buf.as_slice()),
         }
     }
@@ -496,7 +534,8 @@ impl Value {
         self.as_bool().is_some()
     }
 
-    /// Returns true if the `Value` is convertible to an i64. Returns false otherwise.
+    /// Returns true if the `Value` is convertible to an i64. Returns false
+    /// otherwise.
     ///
     /// # Examples
     ///
@@ -515,7 +554,8 @@ impl Value {
         }
     }
 
-    /// Returns true if the `Value` is convertible to an u64. Returns false otherwise.
+    /// Returns true if the `Value` is convertible to an u64. Returns false
+    /// otherwise.
     ///
     /// # Examples
     ///
@@ -535,7 +575,8 @@ impl Value {
         }
     }
 
-    /// Returns true if (and only if) the `Value` is a f32. Returns false otherwise.
+    /// Returns true if (and only if) the `Value` is a f32. Returns false
+    /// otherwise.
     ///
     /// # Examples
     ///
@@ -555,7 +596,8 @@ impl Value {
         }
     }
 
-    /// Returns true if (and only if) the `Value` is a f64. Returns false otherwise.
+    /// Returns true if (and only if) the `Value` is a f64. Returns false
+    /// otherwise.
     ///
     /// # Examples
     ///
@@ -701,7 +743,10 @@ impl Value {
     /// assert_eq!(Some(42.0), Value::F32(42.0f32).as_f64());
     /// assert_eq!(Some(42.0), Value::F64(42.0f64).as_f64());
     ///
-    /// assert_eq!(Some(2147483647.0), Value::from(i32::max_value() as i64).as_f64());
+    /// assert_eq!(
+    ///     Some(2147483647.0),
+    ///     Value::from(i32::max_value() as i64).as_f64()
+    /// );
     ///
     /// assert_eq!(None, Value::Nil.as_f64());
     /// ```
@@ -722,7 +767,10 @@ impl Value {
     /// ```
     /// use rmpv::Value;
     ///
-    /// assert_eq!(Some("le message"), Value::String("le message".into()).as_str());
+    /// assert_eq!(
+    ///     Some("le message"),
+    ///     Value::String("le message".into()).as_str()
+    /// );
     ///
     /// assert_eq!(None, Value::Boolean(true).as_str());
     /// ```
@@ -742,7 +790,10 @@ impl Value {
     /// ```
     /// use rmpv::Value;
     ///
-    /// assert_eq!(Some(&[1, 2, 3, 4, 5][..]), Value::Binary(vec![1, 2, 3, 4, 5]).as_slice());
+    /// assert_eq!(
+    ///     Some(&[1, 2, 3, 4, 5][..]),
+    ///     Value::Binary(vec![1, 2, 3, 4, 5]).as_slice()
+    /// );
     ///
     /// assert_eq!(None, Value::Boolean(true).as_slice());
     /// ```
@@ -766,7 +817,10 @@ impl Value {
     ///
     /// let val = Value::Array(vec![Value::Nil, Value::Boolean(true)]);
     ///
-    /// assert_eq!(Some(&vec![Value::Nil, Value::Boolean(true)]), val.as_array());
+    /// assert_eq!(
+    ///     Some(&vec![Value::Nil, Value::Boolean(true)]),
+    ///     val.as_array()
+    /// );
     ///
     /// assert_eq!(None, Value::Nil.as_array());
     /// ```
@@ -778,8 +832,8 @@ impl Value {
         }
     }
 
-    /// If the `Value` is a Map, returns the associated vector of key-value tuples.
-    /// Returns None otherwise.
+    /// If the `Value` is a Map, returns the associated vector of key-value
+    /// tuples. Returns None otherwise.
     ///
     /// # Note
     ///
@@ -792,7 +846,10 @@ impl Value {
     ///
     /// let val = Value::Map(vec![(Value::Nil, Value::Boolean(true))]);
     ///
-    /// assert_eq!(Some(&vec![(Value::Nil, Value::Boolean(true))]), val.as_map());
+    /// assert_eq!(
+    ///     Some(&vec![(Value::Nil, Value::Boolean(true))]),
+    ///     val.as_map()
+    /// );
     ///
     /// assert_eq!(None, Value::Nil.as_map());
     /// ```
@@ -804,15 +861,18 @@ impl Value {
         }
     }
 
-    /// If the `Value` is an Ext, returns the associated tuple with a ty and slice.
-    /// Returns None otherwise.
+    /// If the `Value` is an Ext, returns the associated tuple with a ty and
+    /// slice. Returns None otherwise.
     ///
     /// # Examples
     ///
     /// ```
     /// use rmpv::Value;
     ///
-    /// assert_eq!(Some((42, &[1, 2, 3, 4, 5][..])), Value::Ext(42, vec![1, 2, 3, 4, 5]).as_ext());
+    /// assert_eq!(
+    ///     Some((42, &[1, 2, 3, 4, 5][..])),
+    ///     Value::Ext(42, vec![1, 2, 3, 4, 5]).as_ext()
+    /// );
     ///
     /// assert_eq!(None, Value::Boolean(true).as_ext());
     /// ```
@@ -975,7 +1035,8 @@ impl Display for Value {
             Value::Array(ref vec) => {
                 // TODO: This can be slower than naive implementation. Need benchmarks for more
                 // information.
-                let res = vec.iter()
+                let res = vec
+                    .iter()
                     .map(|val| format!("{}", val))
                     .collect::<Vec<String>>()
                     .join(", ");
@@ -1000,9 +1061,7 @@ impl Display for Value {
 
                 write!(f, "}}")
             }
-            Value::Ext(ty, ref data) => {
-                write!(f, "[{}, {:?}]", ty, data)
-            }
+            Value::Ext(ty, ref data) => write!(f, "[{}, {:?}]", ty, data),
         }
     }
 }
@@ -1015,7 +1074,8 @@ pub enum ValueRef<'a> {
     Boolean(bool),
     /// Integer represents an integer.
     ///
-    /// A value of an `Integer` object is limited from `-(2^63)` upto `(2^64)-1`.
+    /// A value of an `Integer` object is limited from `-(2^63)` upto
+    /// `(2^64)-1`.
     Integer(Integer),
     /// A 32-bit floating point number.
     F32(f32),
@@ -1029,38 +1089,37 @@ pub enum ValueRef<'a> {
     Array(Vec<ValueRef<'a>>),
     /// Map represents key-value pairs of objects.
     Map(Vec<(ValueRef<'a>, ValueRef<'a>)>),
-    /// Extended implements Extension interface: represents a tuple of type information and a byte
-    /// array where type information is an integer whose meaning is defined by applications.
+    /// Extended implements Extension interface: represents a tuple of type
+    /// information and a byte array where type information is an integer
+    /// whose meaning is defined by applications.
     Ext(i8, &'a [u8]),
 }
 
 impl<'a> ValueRef<'a> {
     /// Converts the current non-owning value to an owned Value.
     ///
-    /// This is achieved by deep copying all underlying structures and borrowed buffers.
+    /// This is achieved by deep copying all underlying structures and borrowed
+    /// buffers.
     ///
     /// # Panics
     ///
-    /// Panics in unable to allocate memory to keep all internal structures and buffers.
+    /// Panics in unable to allocate memory to keep all internal structures and
+    /// buffers.
     ///
     /// # Examples
     /// ```
     /// use rmpv::{Value, ValueRef};
     ///
     /// let val = ValueRef::Array(vec![
-    ///    ValueRef::Nil,
-    ///    ValueRef::from(42),
-    ///    ValueRef::Array(vec![
-    ///        ValueRef::from("le message"),
-    ///    ])
+    ///     ValueRef::Nil,
+    ///     ValueRef::from(42),
+    ///     ValueRef::Array(vec![ValueRef::from("le message")]),
     /// ]);
     ///
     /// let expected = Value::Array(vec![
     ///     Value::Nil,
     ///     Value::from(42),
-    ///     Value::Array(vec![
-    ///         Value::String("le message".into())
-    ///     ])
+    ///     Value::Array(vec![Value::String("le message".into())]),
     /// ]);
     ///
     /// assert_eq!(expected, val.to_owned());
@@ -1074,18 +1133,20 @@ impl<'a> ValueRef<'a> {
             &ValueRef::F64(val) => Value::F64(val),
             &ValueRef::String(val) => Value::String(val.into()),
             &ValueRef::Binary(val) => Value::Binary(val.to_vec()),
-            &ValueRef::Array(ref val) => {
-                Value::Array(val.iter().map(|v| v.to_owned()).collect())
-            }
-            &ValueRef::Map(ref val) => {
-                Value::Map(val.iter().map(|&(ref k, ref v)| (k.to_owned(), v.to_owned())).collect())
-            }
+            &ValueRef::Array(ref val) => Value::Array(val.iter().map(|v| v.to_owned()).collect()),
+            &ValueRef::Map(ref val) => Value::Map(
+                val.iter()
+                    .map(|&(ref k, ref v)| (k.to_owned(), v.to_owned()))
+                    .collect(),
+            ),
             &ValueRef::Ext(ty, buf) => Value::Ext(ty, buf.to_vec()),
         }
     }
 
     pub fn index(&self, index: usize) -> &ValueRef {
-        self.as_array().and_then(|v| v.get(index)).unwrap_or(&NIL_REF)
+        self.as_array()
+            .and_then(|v| v.get(index))
+            .unwrap_or(&NIL_REF)
     }
 
     /// If the `ValueRef` is an integer, return or cast it to a u64.
@@ -1115,7 +1176,10 @@ impl<'a> ValueRef<'a> {
     ///
     /// let val = ValueRef::Array(vec![ValueRef::Nil, ValueRef::Boolean(true)]);
     ///
-    /// assert_eq!(Some(&vec![ValueRef::Nil, ValueRef::Boolean(true)]), val.as_array());
+    /// assert_eq!(
+    ///     Some(&vec![ValueRef::Nil, ValueRef::Boolean(true)]),
+    ///     val.as_array()
+    /// );
     /// assert_eq!(None, ValueRef::Nil.as_array());
     /// ```
     pub fn as_array(&self) -> Option<&Vec<ValueRef>> {
@@ -1242,7 +1306,8 @@ impl<'a> Display for ValueRef<'a> {
             ValueRef::String(ref val) => write!(f, "{}", val),
             ValueRef::Binary(ref val) => write!(f, "{:?}", val),
             ValueRef::Array(ref vec) => {
-                let res = vec.iter()
+                let res = vec
+                    .iter()
                     .map(|val| format!("{}", val))
                     .collect::<Vec<String>>()
                     .join(", ");
@@ -1267,9 +1332,7 @@ impl<'a> Display for ValueRef<'a> {
 
                 write!(f, "}}")
             }
-            ValueRef::Ext(ty, ref data) => {
-                write!(f, "[{}, {:?}]", ty, data)
-            }
+            ValueRef::Ext(ty, ref data) => write!(f, "[{}, {:?}]", ty, data),
         }
     }
 }

@@ -1,37 +1,46 @@
-use std;
-use std::io::{self, Cursor, ErrorKind, Read};
-use std::str;
+use std::{
+    self,
+    io::{self, Cursor, ErrorKind, Read},
+    str,
+};
 
-use rmp::Marker;
-use rmp::decode::{read_marker, read_data_u8, read_data_u16, read_data_u32, read_data_u64,
-                  read_data_i8, read_data_i16, read_data_i32, read_data_i64, read_data_f32,
-                  read_data_f64};
+use rmp::{
+    decode::{
+        read_data_f32, read_data_f64, read_data_i16, read_data_i32, read_data_i64, read_data_i8,
+        read_data_u16, read_data_u32, read_data_u64, read_data_u8, read_marker,
+    },
+    Marker,
+};
 
-use {Utf8StringRef, ValueRef};
 use super::Error;
+use Utf8StringRef;
+use ValueRef;
 
 fn read_str_data<'a, R>(rd: &mut R, len: usize) -> Result<Utf8StringRef<'a>, Error>
-    where R: BorrowRead<'a>
+where
+    R: BorrowRead<'a>,
 {
     let buf = read_bin_data(rd, len)?;
     match str::from_utf8(buf) {
         Ok(s) => Ok(Utf8StringRef::from(s)),
         Err(err) => {
-            let s = Utf8StringRef {
-                s: Err((buf, err)),
-            };
+            let s = Utf8StringRef { s: Err((buf, err)) };
             Ok(s)
         }
     }
 }
 
 fn read_bin_data<'a, R>(rd: &mut R, len: usize) -> Result<&'a [u8], Error>
-    where R: BorrowRead<'a>
+where
+    R: BorrowRead<'a>,
 {
     let buf = rd.fill_buf();
 
     if len > buf.len() {
-        return Err(Error::InvalidDataRead(io::Error::new(ErrorKind::UnexpectedEof, "unexpected EOF")));
+        return Err(Error::InvalidDataRead(io::Error::new(
+            ErrorKind::UnexpectedEof,
+            "unexpected EOF",
+        )));
     }
 
     // Take a slice.
@@ -42,7 +51,8 @@ fn read_bin_data<'a, R>(rd: &mut R, len: usize) -> Result<&'a [u8], Error>
 }
 
 fn read_ext_body<'a, R>(rd: &mut R, len: usize) -> Result<(i8, &'a [u8]), Error>
-    where R: BorrowRead<'a>
+where
+    R: BorrowRead<'a>,
 {
     let ty = read_data_i8(rd)?;
     let buf = read_bin_data(rd, len)?;
@@ -51,7 +61,8 @@ fn read_ext_body<'a, R>(rd: &mut R, len: usize) -> Result<(i8, &'a [u8]), Error>
 }
 
 fn read_array_data<'a, R>(rd: &mut R, mut len: usize) -> Result<Vec<ValueRef<'a>>, Error>
-    where R: BorrowRead<'a>
+where
+    R: BorrowRead<'a>,
 {
     let mut vec = Vec::with_capacity(len);
 
@@ -63,8 +74,12 @@ fn read_array_data<'a, R>(rd: &mut R, mut len: usize) -> Result<Vec<ValueRef<'a>
     Ok(vec)
 }
 
-fn read_map_data<'a, R>(rd: &mut R, mut len: usize) -> Result<Vec<(ValueRef<'a>, ValueRef<'a>)>, Error>
-    where R: BorrowRead<'a>
+fn read_map_data<'a, R>(
+    rd: &mut R,
+    mut len: usize,
+) -> Result<Vec<(ValueRef<'a>, ValueRef<'a>)>, Error>
+where
+    R: BorrowRead<'a>,
 {
     let mut vec = Vec::with_capacity(len);
 
@@ -78,22 +93,24 @@ fn read_map_data<'a, R>(rd: &mut R, mut len: usize) -> Result<Vec<(ValueRef<'a>,
 
 /// A BorrowRead is a type of Reader which has an internal buffer.
 ///
-/// This magic trait acts like a standard BufRead but unlike the standard this has an explicit
-/// internal buffer lifetime, which allows to borrow from underlying buffer while consuming bytes.
+/// This magic trait acts like a standard BufRead but unlike the standard this
+/// has an explicit internal buffer lifetime, which allows to borrow from
+/// underlying buffer while consuming bytes.
 pub trait BorrowRead<'a>: Read {
     /// Returns the buffer contents.
     ///
-    /// This function is a lower-level call. It needs to be paired with the consume method to
-    /// function properly. When calling this method, none of the contents will be "read" in the
-    /// sense that later calling read may return the same contents. As such, consume must be called
-    /// with the number of bytes that are consumed from this buffer to ensure that the bytes are
-    /// never returned twice.
+    /// This function is a lower-level call. It needs to be paired with the
+    /// consume method to function properly. When calling this method, none
+    /// of the contents will be "read" in the sense that later calling read
+    /// may return the same contents. As such, consume must be called
+    /// with the number of bytes that are consumed from this buffer to ensure
+    /// that the bytes are never returned twice.
     ///
     /// An empty buffer returned indicates that the stream has reached EOF.
     fn fill_buf(&self) -> &'a [u8];
 
-    /// Tells this buffer that len bytes have been consumed from the buffer, so they should no
-    /// longer be returned in calls to read.
+    /// Tells this buffer that len bytes have been consumed from the buffer, so
+    /// they should no longer be returned in calls to read.
     fn consume(&mut self, len: usize);
 }
 
@@ -107,7 +124,8 @@ impl<'a> BorrowRead<'a> for &'a [u8] {
     }
 }
 
-/// Useful when you want to know how much bytes has been consumed during ValueRef decoding.
+/// Useful when you want to know how much bytes has been consumed during
+/// ValueRef decoding.
 impl<'a> BorrowRead<'a> for Cursor<&'a [u8]> {
     fn fill_buf(&self) -> &'a [u8] {
         let len = std::cmp::min(self.position(), self.get_ref().len() as u64);
@@ -120,43 +138,52 @@ impl<'a> BorrowRead<'a> for Cursor<&'a [u8]> {
     }
 }
 
-/// Attempts to read the data from the given reader until either a complete MessagePack value
-/// decoded or an error detected.
+/// Attempts to read the data from the given reader until either a complete
+/// MessagePack value decoded or an error detected.
 ///
-/// Returns either a non-owning `ValueRef`, which borrows the buffer from the given reader or an
-/// error.
+/// Returns either a non-owning `ValueRef`, which borrows the buffer from the
+/// given reader or an error.
 ///
-/// The reader should meet the requirement of a special `BorrowRead` trait, which allows to mutate
-/// itself but permits to mutate the buffer it contains. It allows to perform a completely
-/// zero-copy reading without a data loss fear in case of an error.
+/// The reader should meet the requirement of a special `BorrowRead` trait,
+/// which allows to mutate itself but permits to mutate the buffer it contains.
+/// It allows to perform a completely zero-copy reading without a data loss fear
+/// in case of an error.
 ///
-/// Currently only two types fit in this requirement: `&[u8]` and `Cursor<&[u8]>`. Using Cursor is
-/// helpful, when you need to know how exactly many bytes the decoded ValueRef consumes. A `Vec<u8>`
-/// type doesn't fit in the `BorrowRead` requirement, because its mut reference can mutate the
-/// underlying buffer - use `Vec::as_slice()` if you need to decode a value from the vector.
+/// Currently only two types fit in this requirement: `&[u8]` and
+/// `Cursor<&[u8]>`. Using Cursor is helpful, when you need to know how exactly
+/// many bytes the decoded ValueRef consumes. A `Vec<u8>` type doesn't fit in
+/// the `BorrowRead` requirement, because its mut reference can mutate the
+/// underlying buffer - use `Vec::as_slice()` if you need to decode a value from
+/// the vector.
 ///
 /// # Errors
 ///
-/// Returns an `Error` value if unable to continue the decoding operation either because of read
-/// failure or any other circumstances. See `Error` documentation for more information.
+/// Returns an `Error` value if unable to continue the decoding operation either
+/// because of read failure or any other circumstances. See `Error`
+/// documentation for more information.
 ///
 /// # Examples
 /// ```
-/// use rmpv::ValueRef;
-/// use rmpv::decode::read_value_ref;
+/// use rmpv::{decode::read_value_ref, ValueRef};
 ///
-/// let buf = [0xaa, 0x6c, 0x65, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65];
+/// let buf = [
+///     0xaa, 0x6c, 0x65, 0x20, 0x6d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65,
+/// ];
 /// let mut rd = &buf[..];
 ///
-/// assert_eq!(ValueRef::from("le message"), read_value_ref(&mut rd).unwrap());
+/// assert_eq!(
+///     ValueRef::from("le message"),
+///     read_value_ref(&mut rd).unwrap()
+/// );
 /// ```
 pub fn read_value_ref<'a, R>(rd: &mut R) -> Result<ValueRef<'a>, Error>
-    where R: BorrowRead<'a>
+where
+    R: BorrowRead<'a>,
 {
     let mut rd = rd;
 
-    // Reading the marker involves either 1 byte read or nothing. On success consumes strictly
-    // 1 byte from the `rd`.
+    // Reading the marker involves either 1 byte read or nothing. On success
+    // consumes strictly 1 byte from the `rd`.
     let val = match read_marker(rd)? {
         Marker::Null => ValueRef::Nil,
         Marker::True => ValueRef::Boolean(true),
