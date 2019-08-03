@@ -1,5 +1,4 @@
-use msgpack::Marker;
-use msgpack::encode::*;
+use msgpack::{encode::*, Marker};
 
 #[test]
 fn pass_pack_pfix() {
@@ -56,7 +55,9 @@ fn pass_pack_u32() {
 fn pass_pack_u64() {
     let mut buf = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
 
-    write_u64(&mut &mut buf[..], 18446744073709551615).ok().unwrap();
+    write_u64(&mut &mut buf[..], 18446744073709551615)
+        .ok()
+        .unwrap();
 
     assert_eq!([0xcf, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff], buf);
 }
@@ -117,7 +118,9 @@ fn pass_pack_i32() {
 fn pass_pack_i64() {
     let mut buf = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
 
-    write_i64(&mut &mut buf[..], -9223372036854775808).ok().unwrap();
+    write_i64(&mut &mut buf[..], -9223372036854775808)
+        .ok()
+        .unwrap();
 
     assert_eq!([0xd3, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], buf);
 }
@@ -126,7 +129,10 @@ fn pass_pack_i64() {
 fn pass_pack_uint_fix() {
     let mut buf = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
 
-    assert_eq!(Marker::FixPos(127), write_uint(&mut &mut buf[..], 127).ok().unwrap());
+    assert_eq!(
+        Marker::FixPos(127),
+        write_uint(&mut &mut buf[..], 127).ok().unwrap()
+    );
 
     assert_eq!([0x7f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], buf);
 }
@@ -144,7 +150,10 @@ fn pass_pack_uint_u8() {
 fn pass_pack_uint_u16() {
     let mut buf = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
 
-    assert_eq!(Marker::U16, write_uint(&mut &mut buf[..], 65535).ok().unwrap());
+    assert_eq!(
+        Marker::U16,
+        write_uint(&mut &mut buf[..], 65535).ok().unwrap()
+    );
 
     assert_eq!([0xcd, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], buf);
 }
@@ -153,7 +162,10 @@ fn pass_pack_uint_u16() {
 fn pass_pack_uint_u32() {
     let mut buf = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
 
-    assert_eq!(Marker::U32, write_uint(&mut &mut buf[..], 4294967295).ok().unwrap());
+    assert_eq!(
+        Marker::U32,
+        write_uint(&mut &mut buf[..], 4294967295).ok().unwrap()
+    );
 
     assert_eq!([0xce, 0xff, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00], buf);
 }
@@ -162,7 +174,12 @@ fn pass_pack_uint_u32() {
 fn pass_pack_uint_u64() {
     let mut buf = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
 
-    assert_eq!(Marker::U64, write_uint(&mut &mut buf[..], 18446744073709551615).ok().unwrap());
+    assert_eq!(
+        Marker::U64,
+        write_uint(&mut &mut buf[..], 18446744073709551615)
+            .ok()
+            .unwrap()
+    );
 
     assert_eq!([0xcf, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff], buf);
 }
@@ -171,7 +188,10 @@ fn pass_pack_uint_u64() {
 fn pass_pack_sint_fix() {
     let mut buf = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
 
-    assert_eq!(Marker::FixNeg(-32), write_sint(&mut &mut buf[..], -32).ok().unwrap());
+    assert_eq!(
+        Marker::FixNeg(-32),
+        write_sint(&mut &mut buf[..], -32).ok().unwrap()
+    );
 
     assert_eq!([0xe0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], buf);
 }
@@ -180,7 +200,10 @@ fn pass_pack_sint_fix() {
 fn pass_pack_sint_i8_min() {
     let mut buf = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
 
-    assert_eq!(Marker::I8, write_sint(&mut &mut buf[..], -128).ok().unwrap());
+    assert_eq!(
+        Marker::I8,
+        write_sint(&mut &mut buf[..], -128).ok().unwrap()
+    );
 
     assert_eq!([0xd0, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], buf);
 }
@@ -189,7 +212,10 @@ fn pass_pack_sint_i8_min() {
 fn pass_pack_sint_i16_min() {
     let mut buf = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
 
-    assert_eq!(Marker::I16, write_sint(&mut &mut buf[..], -32768).ok().unwrap());
+    assert_eq!(
+        Marker::I16,
+        write_sint(&mut &mut buf[..], -32768).ok().unwrap()
+    );
 
     assert_eq!([0xd1, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], buf);
 }
@@ -198,7 +224,10 @@ fn pass_pack_sint_i16_min() {
 fn pass_pack_sint_i16_max() {
     let mut buf = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
 
-    assert_eq!(Marker::U16, write_sint(&mut &mut buf[..], 32767).ok().unwrap());
+    assert_eq!(
+        Marker::U16,
+        write_sint(&mut &mut buf[..], 32767).ok().unwrap()
+    );
 
     assert_eq!([0xcd, 0x7f, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], buf);
 }
@@ -207,7 +236,10 @@ fn pass_pack_sint_i16_max() {
 fn pass_pack_sint_i32_min() {
     let mut buf = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
 
-    assert_eq!(Marker::I32, write_sint(&mut &mut buf[..], -2147483648).ok().unwrap());
+    assert_eq!(
+        Marker::I32,
+        write_sint(&mut &mut buf[..], -2147483648).ok().unwrap()
+    );
 
     assert_eq!([0xd2, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], buf);
 }
@@ -216,7 +248,10 @@ fn pass_pack_sint_i32_min() {
 fn pass_pack_sint_i32_max() {
     let mut buf = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
 
-    assert_eq!(Marker::U32, write_sint(&mut &mut buf[..], 2147483647).ok().unwrap());
+    assert_eq!(
+        Marker::U32,
+        write_sint(&mut &mut buf[..], 2147483647).ok().unwrap()
+    );
 
     assert_eq!([0xce, 0x7f, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00], buf);
 }
@@ -225,7 +260,12 @@ fn pass_pack_sint_i32_max() {
 fn pass_pack_sint_i64_min() {
     let mut buf = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
 
-    assert_eq!(Marker::I64, write_sint(&mut &mut buf[..], -9223372036854775808).ok().unwrap());
+    assert_eq!(
+        Marker::I64,
+        write_sint(&mut &mut buf[..], -9223372036854775808)
+            .ok()
+            .unwrap()
+    );
 
     assert_eq!([0xd3, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00], buf);
 }
@@ -234,7 +274,12 @@ fn pass_pack_sint_i64_min() {
 fn pass_pack_sint_i64_max() {
     let mut buf = [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
 
-    assert_eq!(Marker::U64, write_sint(&mut &mut buf[..], 9223372036854775807).ok().unwrap());
+    assert_eq!(
+        Marker::U64,
+        write_sint(&mut &mut buf[..], 9223372036854775807)
+            .ok()
+            .unwrap()
+    );
 
     assert_eq!([0xcf, 0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff], buf);
 }

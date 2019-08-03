@@ -1,7 +1,6 @@
 use std::io::Cursor;
 
-use msgpack::Marker;
-use msgpack::decode::*;
+use msgpack::{decode::*, Marker};
 
 #[test]
 fn from_positive_fixnum() {
@@ -43,7 +42,7 @@ fn from_u8_type_mismatch() {
 
     match read_u8(&mut cur) {
         Err(ValueReadError::TypeMismatch(Marker::Null)) => (),
-        other => panic!("unexpected result: {:?}", other)
+        other => panic!("unexpected result: {:?}", other),
     }
     assert_eq!(1, cur.position());
 }
@@ -156,8 +155,8 @@ fn from_unsigned_u32_incomplete_read_int() {
 #[test]
 fn from_unsigned_u64_read_int() {
     let buf = [
-        0xcf, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
-        0xcf, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+        0xcf, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0xcf, 0xff, 0xff, 0xff, 0xff, 0xff,
+        0xff, 0xff, 0xff,
     ];
     let mut cur = Cursor::new(&buf[..]);
 
@@ -184,7 +183,7 @@ fn from_unsigned_invalid_marker_read_int() {
 
     match read_int::<u64, _>(&mut cur) {
         Err(NumValueReadError::TypeMismatch(Marker::Null)) => (),
-        other => panic!("unexpected result: {:?}", other)
+        other => panic!("unexpected result: {:?}", other),
     }
     assert_eq!(1, cur.position());
 }
@@ -196,7 +195,7 @@ fn from_unsigned_invalid_unknown_marker_read_int() {
 
     match read_int::<u64, _>(&mut cur) {
         Err(NumValueReadError::TypeMismatch(Marker::Reserved)) => (),
-        other => panic!("unexpected result: {:?}", other)
+        other => panic!("unexpected result: {:?}", other),
     }
     assert_eq!(1, cur.position());
 }

@@ -1,7 +1,6 @@
 use std::io::Cursor;
 
-use msgpack::Marker;
-use msgpack::decode::*;
+use msgpack::{decode::*, Marker};
 
 #[test]
 fn from_fixmap_min_read_size() {
@@ -55,7 +54,7 @@ fn from_null_read_map_len() {
 
     match read_map_len(&mut cur) {
         Err(ValueReadError::TypeMismatch(Marker::Null)) => (),
-        other => panic!("unexpected result: {:?}", other)
+        other => panic!("unexpected result: {:?}", other),
     }
     assert_eq!(1, cur.position());
 }
