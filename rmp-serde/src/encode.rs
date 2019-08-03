@@ -1,16 +1,21 @@
 //! Serialize a Rust data structure into MessagePack data.
 
-use std::error;
-use std::fmt::{self, Display};
-use std::io::Write;
+use std::{
+    error,
+    fmt::{self, Display},
+    io::Write,
+};
 
-use serde;
-use serde::Serialize;
-use serde::ser::{SerializeMap, SerializeSeq, SerializeStruct, SerializeStructVariant,
-                 SerializeTuple, SerializeTupleStruct, SerializeTupleVariant};
+use serde::{
+    self,
+    ser::{
+        SerializeMap, SerializeSeq, SerializeStruct, SerializeStructVariant, SerializeTuple,
+        SerializeTupleStruct, SerializeTupleVariant,
+    },
+    Serialize,
+};
 
-use rmp::encode;
-use rmp::encode::ValueWriteError;
+use rmp::encode::{self, ValueWriteError};
 
 use config::{
     DefaultConfig, SerializerConfig, StructMapConfig, StructTupleConfig, VariantIntegerConfig,
@@ -23,7 +28,8 @@ use config::{
 pub enum Error {
     /// Failed to write a MessagePack value.
     InvalidValueWrite(ValueWriteError),
-    /// Failed to serialize struct, sequence or map, because its length is unknown.
+    /// Failed to serialize struct, sequence or map, because its length is
+    /// unknown.
     UnknownLength,
     /// Depth limit exceeded
     DepthLimitExceeded,
@@ -100,15 +106,15 @@ pub trait UnderlyingWrite {
 ///
 /// # Note
 ///
-/// MessagePack has no specification about how to encode enum types. Thus we are free to do
-/// whatever we want, so the given chose may be not ideal for you.
+/// MessagePack has no specification about how to encode enum types. Thus we are
+/// free to do whatever we want, so the given chose may be not ideal for you.
 ///
 /// An enum value is represented as a single-entry map whose key is the variant
 /// id and whose value is a sequence containing all associated data. If the enum
 /// does not have associated data, the sequence is empty.
 ///
-/// All instances of `ErrorKind::Interrupted` are handled by this function and the underlying
-/// operation is retried.
+/// All instances of `ErrorKind::Interrupted` are handled by this function and
+/// the underlying operation is retried.
 // TODO: Docs. Examples.
 #[derive(Debug)]
 pub struct Serializer<W, C> {
@@ -145,13 +151,13 @@ impl<W: Write, C> Serializer<W, C> {
 }
 
 impl<W: Write> Serializer<W, DefaultConfig> {
-    /// Constructs a new `MessagePack` serializer whose output will be written to the writer
-    /// specified.
+    /// Constructs a new `MessagePack` serializer whose output will be written
+    /// to the writer specified.
     ///
     /// # Note
     ///
-    /// This is the default constructor, which returns a serializer that will serialize structs
-    /// and enums using the most compact representation.
+    /// This is the default constructor, which returns a serializer that will
+    /// serialize structs and enums using the most compact representation.
     pub fn new(wr: W) -> Self {
         Serializer {
             wr: wr,
@@ -186,10 +192,11 @@ impl<'a, W: Write + 'a, C> Serializer<W, C> {
 }
 
 impl<W: Write, C> Serializer<W, C> {
-    /// Consumes this serializer returning the new one, which will serialize structs as a map.
+    /// Consumes this serializer returning the new one, which will serialize
+    /// structs as a map.
     ///
-    /// This is used, when you the default struct serialization as a tuple does not fit your
-    /// requirements.
+    /// This is used, when you the default struct serialization as a tuple does
+    /// not fit your requirements.
     pub fn with_struct_map(self) -> Serializer<W, StructMapConfig<C>> {
         let Serializer { wr, depth, config } = self;
         Serializer {
@@ -199,11 +206,11 @@ impl<W: Write, C> Serializer<W, C> {
         }
     }
 
-    /// Consumes this serializer returning the new one, which will serialize structs as a tuple
-    /// without field names.
+    /// Consumes this serializer returning the new one, which will serialize
+    /// structs as a tuple without field names.
     ///
-    /// This is the default MessagePack serialization mechanism, emitting the most compact
-    /// representation.
+    /// This is the default MessagePack serialization mechanism, emitting the
+    /// most compact representation.
     pub fn with_struct_tuple(self) -> Serializer<W, StructTupleConfig<C>> {
         let Serializer { wr, depth, config } = self;
         Serializer {
@@ -213,10 +220,11 @@ impl<W: Write, C> Serializer<W, C> {
         }
     }
 
-    /// Consumes this serializer returning the new one, which will serialize enum variants as strings.
+    /// Consumes this serializer returning the new one, which will serialize
+    /// enum variants as strings.
     ///
-    /// This is used, when you the default struct serialization as integers does not fit your
-    /// requirements.
+    /// This is used, when you the default struct serialization as integers does
+    /// not fit your requirements.
     pub fn with_string_variants(self) -> Serializer<W, VariantStringConfig<C>> {
         let Serializer { wr, depth, config } = self;
         Serializer {
@@ -226,11 +234,11 @@ impl<W: Write, C> Serializer<W, C> {
         }
     }
 
-    /// Consumes this serializer returning the new one, which will serialize enum variants as a their
-    /// integer indices.
+    /// Consumes this serializer returning the new one, which will serialize
+    /// enum variants as a their integer indices.
     ///
-    /// This is the default MessagePack serialization mechanism, emitting the most compact
-    /// representation.
+    /// This is the default MessagePack serialization mechanism, emitting the
+    /// most compact representation.
     pub fn with_integer_variants(self) -> Serializer<W, VariantIntegerConfig<C>> {
         let Serializer { wr, depth, config } = self;
         Serializer {
@@ -336,9 +344,11 @@ impl<'a, W: Write + 'a, C: SerializerConfig> SerializeStruct for Compound<'a, W,
     type Ok = ();
     type Error = Error;
 
-    fn serialize_field<T: ?Sized + Serialize>(&mut self, key: &'static str, value: &T) ->
-        Result<(), Self::Error>
-    {
+    fn serialize_field<T: ?Sized + Serialize>(
+        &mut self,
+        key: &'static str,
+        value: &T,
+    ) -> Result<(), Self::Error> {
         C::write_struct_field(self.se, key, value)
     }
 
@@ -351,9 +361,11 @@ impl<'a, W: Write + 'a, C: SerializerConfig> SerializeStructVariant for Compound
     type Ok = ();
     type Error = Error;
 
-    fn serialize_field<T: ?Sized + Serialize>(&mut self, key: &'static str, value: &T) ->
-        Result<(), Self::Error>
-    {
+    fn serialize_field<T: ?Sized + Serialize>(
+        &mut self,
+        key: &'static str,
+        value: &T,
+    ) -> Result<(), Self::Error> {
         C::write_struct_field(self.se, key, value)
     }
 
@@ -463,21 +475,34 @@ where
         Ok(())
     }
 
-    fn serialize_unit_variant(self, _name: &str, idx: u32, variant: &'static str) ->
-        Result<Self::Ok, Self::Error>
-    {
+    fn serialize_unit_variant(
+        self,
+        _name: &str,
+        idx: u32,
+        variant: &'static str,
+    ) -> Result<Self::Ok, Self::Error> {
         // encode as a map from variant idx to nil, like: {idx => nil}
         encode::write_map_len(&mut self.wr, 1)?;
         C::write_variant_ident(self, idx, variant)?;
         self.serialize_unit()
     }
 
-    fn serialize_newtype_struct<T: ?Sized + serde::Serialize>(self, _name: &'static str, value: &T) -> Result<(), Self::Error> {
+    fn serialize_newtype_struct<T: ?Sized + serde::Serialize>(
+        self,
+        _name: &'static str,
+        value: &T,
+    ) -> Result<(), Self::Error> {
         // Encode as if it's inner type.
         value.serialize(self)
     }
 
-    fn serialize_newtype_variant<T: ?Sized + serde::Serialize>(self, _name: &'static str, idx: u32, variant: &'static str, value: &T) -> Result<Self::Ok, Self::Error> {
+    fn serialize_newtype_variant<T: ?Sized + serde::Serialize>(
+        self,
+        _name: &'static str,
+        idx: u32,
+        variant: &'static str,
+        value: &T,
+    ) -> Result<Self::Ok, Self::Error> {
         // encode as a map from variant idx to its attributed data, like: {idx => value}
         encode::write_map_len(&mut self.wr, 1)?;
         C::write_variant_ident(self, idx, variant)?;
@@ -499,16 +524,23 @@ where
         self.serialize_seq(Some(len))
     }
 
-    fn serialize_tuple_struct(self, _name: &'static str, len: usize) ->
-        Result<Self::SerializeTupleStruct, Self::Error>
-    {
+    fn serialize_tuple_struct(
+        self,
+        _name: &'static str,
+        len: usize,
+    ) -> Result<Self::SerializeTupleStruct, Self::Error> {
         self.serialize_tuple(len)
     }
 
-    fn serialize_tuple_variant(self,  name: &'static str,  idx: u32,  variant: &'static str,  len: usize) ->
-        Result<Self::SerializeTupleVariant, Error>
-    {
-        // encode as a map from variant idx to a sequence of its attributed data, like: {idx => [v1,...,vN]}
+    fn serialize_tuple_variant(
+        self,
+        name: &'static str,
+        idx: u32,
+        variant: &'static str,
+        len: usize,
+    ) -> Result<Self::SerializeTupleVariant, Error> {
+        // encode as a map from variant idx to a sequence of its attributed data, like:
+        // {idx => [v1,...,vN]}
         encode::write_map_len(&mut self.wr, 1)?;
         C::write_variant_ident(self, idx, variant)?;
         self.serialize_tuple_struct(name, len)
@@ -524,17 +556,24 @@ where
         }
     }
 
-    fn serialize_struct(self, _name: &'static str, len: usize) ->
-        Result<Self::SerializeStruct, Self::Error>
-    {
+    fn serialize_struct(
+        self,
+        _name: &'static str,
+        len: usize,
+    ) -> Result<Self::SerializeStruct, Self::Error> {
         C::write_struct_len(self, len)?;
         self.compound()
     }
 
-    fn serialize_struct_variant(self, name: &'static str, id: u32, variant: &'static str, len: usize) ->
-        Result<Self::SerializeStructVariant, Error>
-    {
-        // encode as a map from variant idx to a sequence of its attributed data, like: {idx => [v1,...,vN]}
+    fn serialize_struct_variant(
+        self,
+        name: &'static str,
+        id: u32,
+        variant: &'static str,
+        len: usize,
+    ) -> Result<Self::SerializeStructVariant, Error> {
+        // encode as a map from variant idx to a sequence of its attributed data, like:
+        // {idx => [v1,...,vN]}
         encode::write_map_len(&mut self.wr, 1)?;
         C::write_variant_ident(self, id, variant)?;
         self.serialize_struct(name, len)
@@ -549,12 +588,13 @@ where
 /// Serialize the given data structure as MessagePack into the I/O stream.
 /// This function uses compact representation - structures as arrays
 ///
-/// Serialization can fail if `T`'s implementation of `Serialize` decides to fail.
+/// Serialization can fail if `T`'s implementation of `Serialize` decides to
+/// fail.
 #[inline]
 pub fn write<W, T>(wr: &mut W, val: &T) -> Result<(), Error>
 where
     W: Write + ?Sized,
-    T: Serialize + ?Sized
+    T: Serialize + ?Sized,
 {
     val.serialize(&mut Serializer::new(wr))
 }
@@ -562,26 +602,27 @@ where
 /// Serialize the given data structure as MessagePack into the I/O stream.
 /// This function serializes structures as maps
 ///
-/// Serialization can fail if `T`'s implementation of `Serialize` decides to fail.
+/// Serialization can fail if `T`'s implementation of `Serialize` decides to
+/// fail.
 #[inline]
 pub fn write_named<W, T>(wr: &mut W, val: &T) -> Result<(), Error>
 where
     W: Write + ?Sized,
-    T: Serialize + ?Sized
+    T: Serialize + ?Sized,
 {
-    let mut se = Serializer::new(wr)
-        .with_struct_map();
+    let mut se = Serializer::new(wr).with_struct_map();
     val.serialize(&mut se)
 }
 
 /// Serialize the given data structure as a MessagePack byte vector.
 /// This method uses compact representation, structs are serialized as arrays
 ///
-/// Serialization can fail if `T`'s implementation of `Serialize` decides to fail.
+/// Serialization can fail if `T`'s implementation of `Serialize` decides to
+/// fail.
 #[inline]
 pub fn to_vec<T>(val: &T) -> Result<Vec<u8>, Error>
 where
-    T: Serialize + ?Sized
+    T: Serialize + ?Sized,
 {
     let mut wr = Vec::with_capacity(128);
     write(&mut wr, val)?;
@@ -593,11 +634,12 @@ where
 ///
 /// # Errors
 ///
-/// Serialization can fail if `T`'s implementation of `Serialize` decides to fail.
+/// Serialization can fail if `T`'s implementation of `Serialize` decides to
+/// fail.
 #[inline]
 pub fn to_vec_named<T>(val: &T) -> Result<Vec<u8>, Error>
 where
-    T: Serialize + ?Sized
+    T: Serialize + ?Sized,
 {
     let mut wr = Vec::with_capacity(128);
     write_named(&mut wr, val)?;

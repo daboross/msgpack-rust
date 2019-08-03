@@ -6,8 +6,8 @@ use encode::{Error, UnderlyingWrite};
 
 /// Represents configuration that dicatates what the serializer does.
 ///
-/// Implemented as an empty trait depending on a hidden trait in order to allow changing the
-/// methods of this trait without breaking backwards compatibility.
+/// Implemented as an empty trait depending on a hidden trait in order to allow
+/// changing the methods of this trait without breaking backwards compatibility.
 pub trait SerializerConfig: sealed::SerializerConfig {}
 
 impl<T: sealed::SerializerConfig> SerializerConfig for T {}
@@ -19,8 +19,9 @@ mod sealed {
 
     /// This is the inner trait - the real SerializerConfig.
     ///
-    /// This hack disallows external implementations and usage of SerializerConfig and thus
-    /// allows us to change SerializerConfig methods freely without breaking backwards compatibility.
+    /// This hack disallows external implementations and usage of
+    /// SerializerConfig and thus allows us to change SerializerConfig
+    /// methods freely without breaking backwards compatibility.
     pub trait SerializerConfig {
         fn write_struct_len<S>(ser: &mut S, len: usize) -> Result<(), Error>
         where
@@ -33,7 +34,8 @@ mod sealed {
             for<'a> &'a mut S: Serializer<Ok = (), Error = Error>,
             T: ?Sized + Serialize;
 
-        /// Encodes an enum variant ident (id or name) according to underlying writer.
+        /// Encodes an enum variant ident (id or name) according to underlying
+        /// writer.
         ///
         /// Used in `Serializer::serialize_*_variant` methods.
         fn write_variant_ident<S>(
@@ -49,8 +51,8 @@ mod sealed {
 
 /// The default serializer configuration.
 ///
-/// This writes structs as a tuple, without field names, and enum variants as integers.
-/// This is the most compat representation.
+/// This writes structs as a tuple, without field names, and enum variants as
+/// integers. This is the most compat representation.
 #[derive(Copy, Clone, Debug)]
 pub struct DefaultConfig;
 
@@ -87,18 +89,20 @@ impl sealed::SerializerConfig for DefaultConfig {
     }
 }
 
-/// Config wrapper, that overrides struct serialization by packing as a map with field names.
+/// Config wrapper, that overrides struct serialization by packing as a map with
+/// field names.
 ///
-/// MessagePack specification does not tell how to serialize structs. This trait allows you to
-/// extend serialization to match your app's requirements.
+/// MessagePack specification does not tell how to serialize structs. This trait
+/// allows you to extend serialization to match your app's requirements.
 ///
-/// Default `Serializer` implementation writes structs as a tuple, i.e. only its length is encoded,
-/// because it is the most compact representation.
+/// Default `Serializer` implementation writes structs as a tuple, i.e. only its
+/// length is encoded, because it is the most compact representation.
 #[derive(Copy, Clone, Debug)]
 pub struct StructMapConfig<C>(C);
 
 impl<C> StructMapConfig<C> {
-    /// Creates a `StructMapConfig` inheriting unchanged configuration options from the given configuration.
+    /// Creates a `StructMapConfig` inheriting unchanged configuration options
+    /// from the given configuration.
     pub fn new(inner: C) -> Self {
         StructMapConfig(inner)
     }
@@ -141,13 +145,14 @@ where
     }
 }
 
-/// Config wrapper that overrides struct serlization by packing as a tuple without field
-/// names.
+/// Config wrapper that overrides struct serlization by packing as a tuple
+/// without field names.
 #[derive(Copy, Clone, Debug)]
 pub struct StructTupleConfig<C>(C);
 
 impl<C> StructTupleConfig<C> {
-    /// Creates a `StructTupleConfig` inheriting unchanged configuration options from the given configuration.
+    /// Creates a `StructTupleConfig` inheriting unchanged configuration options
+    /// from the given configuration.
     pub fn new(inner: C) -> Self {
         StructTupleConfig(inner)
     }
@@ -189,15 +194,17 @@ where
     }
 }
 
-/// Config wrapper, that overrides enum serialization by serializing enum variant names as strings.
+/// Config wrapper, that overrides enum serialization by serializing enum
+/// variant names as strings.
 ///
-/// Default `Serializer` implementation writes enum names as integers, i.e. only indices are encoded,
-/// because it is the most compact representation.
+/// Default `Serializer` implementation writes enum names as integers, i.e. only
+/// indices are encoded, because it is the most compact representation.
 #[derive(Copy, Clone, Debug)]
 pub struct VariantStringConfig<C>(C);
 
 impl<C> VariantStringConfig<C> {
-    /// Creates a `VariantStringConfig` inheriting unchanged configuration options from the given configuration.
+    /// Creates a `VariantStringConfig` inheriting unchanged configuration
+    /// options from the given configuration.
     pub fn new(inner: C) -> Self {
         VariantStringConfig(inner)
     }
@@ -237,12 +244,14 @@ where
     }
 }
 
-/// Config wrapper that overrides enum variant serialization by packing enum names as their integer indices.
+/// Config wrapper that overrides enum variant serialization by packing enum
+/// names as their integer indices.
 #[derive(Copy, Clone, Debug)]
 pub struct VariantIntegerConfig<C>(C);
 
 impl<C> VariantIntegerConfig<C> {
-    /// Creates a `VariantIntegerConfig` inheriting unchanged configuration options from the given configuration.
+    /// Creates a `VariantIntegerConfig` inheriting unchanged configuration
+    /// options from the given configuration.
     pub fn new(inner: C) -> Self {
         VariantIntegerConfig(inner)
     }
