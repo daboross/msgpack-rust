@@ -227,7 +227,7 @@ fn pass_bin_from_value() {
 
     assert_eq!(
         ByteBuf::from(&[0, 1, 2][..]),
-        deserialize_from(ValueRef::from(&[0, 1, 2][..])).unwrap()
+        deserialize_from::<ByteBuf, _>(ValueRef::from(&[0, 1, 2][..])).unwrap()
     );
 }
 

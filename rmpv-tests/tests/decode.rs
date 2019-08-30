@@ -220,7 +220,7 @@ fn pass_str_from_value() {
 fn pass_bin_from_value() {
     assert_eq!(
         ByteBuf::from(&[0, 1, 2][..]),
-        from_value(Value::from(vec![0, 1, 2])).unwrap()
+        from_value::<ByteBuf>(Value::from(vec![0, 1, 2])).unwrap()
     );
 }
 
